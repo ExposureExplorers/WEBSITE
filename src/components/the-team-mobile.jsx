@@ -256,7 +256,7 @@ const TheTeamMobile = () => {
 					<div className={styles.ourDedicatedTeam}>Photographer</div>
 				</div>
 				<div className={styles.paragraph4}>
-					<div className={styles.ourDedicatedTeam}>Vice President</div>
+					<div className={styles.ourDedicatedTeam}>Ball Knower</div>
 				</div>
 				<img className={styles.containerIcon} alt="" src="/assets/icons/smile-svgrepo-com.svg" />
 				<img className={`${styles.appContainerIcon} ${styles.appContainerIconShiftLeft}`} alt="" src="/assets/images/members/IMG_20241227_204306.jpg" />
@@ -270,7 +270,8 @@ const TheTeamMobile = () => {
 				<div className={styles.ourDedicatedTeam}>Photographer</div>
 			</div>
 			<div className={styles.paragraph4}>
-				<div className={styles.ourDedicatedTeam}>President</div>
+				<div className={styles.ourDedicatedTeam}>Advisor
+				</div>
 			</div>
 			<a href="https://pin.it/2UVHJTQhA" target="_blank" rel="noopener noreferrer" className={`${styles.instagramButton} ${styles.instagramButton2}`}>
 				<img alt="Pinterest" src="/assets/icons/icons8-pinterest.svg" />
@@ -302,7 +303,7 @@ const TheTeamMobile = () => {
 					<div className={styles.ourDedicatedTeam}>Photographer</div>
 				</div>
 				<div className={styles.paragraph4}>
-					<div className={styles.ourDedicatedTeam}>Head of Photography</div>
+					<div className={styles.ourDedicatedTeam}>Member</div>
 				</div>
 				<img className={styles.containerIcon6} alt="" src="/assets/icons/instagram-svgrepo-com (1).svg" />
 				<img className={`${styles.appContainerIcon} ${styles.appContainerIconShiftUp}`} alt="" src="/assets/images/members/IMG_935211 [1].webp" />
@@ -333,7 +334,7 @@ const TheTeamMobile = () => {
 					<div className={styles.ourDedicatedTeam}>Photographer</div>
 				</div>
 				<div className={styles.paragraph4}>
-					<div className={styles.ourDedicatedTeam}>Member</div>
+					<div className={styles.ourDedicatedTeam}>President</div>
 				</div>
 			<a href="https://www.linkedin.com/in/himesh-solanki-a03088323?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" rel="noopener noreferrer" className={`${styles.instagramButton} ${styles.instagramButton6}`}>
 				<img alt="LinkedIn" src="/assets/icons/brand-linkedin-fill (1).svg" />
@@ -365,7 +366,7 @@ const TheTeamMobile = () => {
 					<div className={styles.ourDedicatedTeam}>Editor</div>
 				</div>
 				<div className={styles.paragraph4}>
-					<div className={styles.ourDedicatedTeam}>Member</div>
+					<div className={styles.ourDedicatedTeam}>Head of VFX</div>
 				</div>
 				<a href="https://www.instagram.com/_pranav.l?igsh=MTVtazV2Y2Y2eGJjOQ%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className={`${styles.instagramButton} ${styles.instagramButton8}`}>
 					<img alt="Instagram" src="/assets/icons/instagram-svgrepo-com (1).svg" />
@@ -378,10 +379,10 @@ const TheTeamMobile = () => {
 				</div>
 				<div className={styles.container4} />
 				<div className={styles.paragraph3}>
-					<div className={styles.ourDedicatedTeam}>Cinematographer</div>
+					<div className={styles.ourDedicatedTeam}>Photograher</div>
 				</div>
 				<div className={styles.paragraph4}>
-					<div className={styles.ourDedicatedTeam}>Member</div>
+					<div className={styles.ourDedicatedTeam}>Head of Photography</div>
 				</div>
 			<a href="https://www.linkedin.com/in/editwithpiyush" target="_blank" rel="noopener noreferrer" className={`${styles.instagramButton} ${styles.instagramButton9}`}>
 				<img alt="LinkedIn" src="/assets/icons/brand-linkedin-fill (1).svg" />
@@ -395,5 +396,4 @@ const TheTeamMobile = () => {
 };
 
 export default TheTeamMobile;
-
 
