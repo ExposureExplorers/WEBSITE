@@ -257,12 +257,12 @@ const Frame79 = () => {
       			<div className={styles.dhruvalVashi}>Dhruval Vashi</div>
       			<div className={styles.frameInner} />
       			<div className={styles.photographer}>{`Photographer `}</div>
-      			<div className={styles.vicePresident}>Vice President</div>
+      			<div className={styles.vicePresident}>Ball Knower</div>
       			<img className={styles.instagramSvgrepoCom11} src="/assets/icons/smile-svgrepo-com.svg" alt="" />
       			<div className={styles.jonathanPaul}>Jonathan Paul</div>
       			<div className={styles.lineDiv} />
       			<div className={styles.rectangleParentPhotographer}>{`Photographer `}</div>
-      			<div className={styles.headOfPhotography}>Head of Photography</div>
+      			<div className={styles.headOfPhotography}>Advisor</div>
       			<img className={styles.instagramSvgrepoCom16} src="/assets/icons/instagram-svgrepo-com (1).svg" alt="" />
       			<img className={styles.rectangleIcon} src="/assets/images/members/IMG_8107[1] (1).webp" alt="" />
       			<div className={styles.ronakBarwar}>Ronak Barwar</div>
@@ -271,11 +271,11 @@ const Frame79 = () => {
 			</a>
       			<div className={styles.rectangleParentFrameChild} />
       			<div className={styles.photographer2}>{`Photographer `}</div>
-      			<div className={styles.president}>President</div>
+      			<div className={styles.president}>Advisor</div>
       			<div className={styles.adityaMadkikar}>Aditya Madkaikar</div>
       			<div className={styles.frameChild2} />
       			<div className={styles.cinematographer}>Cinematographer</div>
-      			<div className={styles.headOfVideography}>Head of Videography</div>
+      			<div className={styles.headOfVideography}>Head of Cinematography</div>
       			<img className={styles.frameChild3} src="/assets/images/members/WhatsApp Image 2025-09-12 at 10.52.59_3d59ecb0.jpg" alt="" />
       			<div className={styles.yashodhanBorkar}>Yashodhan Borkar</div>
       			<a href="https://www.instagram.com/yasho_pb?igsh=MTNmdjB2Y3YxaTZrcA==" target="_blank" rel="noopener noreferrer" className={`${styles.instagramButton} ${styles.instagramButton14}`}>
@@ -294,14 +294,14 @@ const Frame79 = () => {
 			</a>
 			<div className={styles.frameChild6} />
 			<div className={styles.rectangleParentCinematographer}>Photographer</div>
-			<div className={styles.member}>Member</div>
+			<div className={styles.member}>President</div>
 			<img className={styles.frameChild7} src="/assets/images/members/ABC_6513.webp" alt="" />
 			<div className={styles.himeshSolanki}>Piyush Singh</div>
 			<a href="https://www.instagram.com/aki1_pr1yan_?igsh=MW1mMWZtZWVzZXN6ag==" target="_blank" rel="noopener noreferrer" className={`${styles.instagramButton} ${styles.instagramButton9}`}>
 				<img src="/assets/icons/instagram-svgrepo-com (1).svg" alt="LinkedIn" />
 			</a>
 			<div className={styles.photographer4}>{`Cinematographer `}</div>
-			<div className={styles.rectangleParentMember}>Member</div>
+			<div className={styles.rectangleParentMember}>Head of Photography</div>
 			<div className={styles.akilPriyan}>Akil Priyan</div>
 			<a href="https://www.linkedin.com/in/editwithpiyush" target="_blank" rel="noopener noreferrer" className={`${styles.instagramButton} ${styles.instagramButton7}`}>
 				<img src="/assets/icons/brand-linkedin-fill (1).svg" alt="Instagram" />
@@ -316,7 +316,7 @@ const Frame79 = () => {
 			</a>
       			<div className={styles.frameChild10} />
       			<div className={styles.editor}>Editor</div>
-      			<div className={styles.member3}>Member</div>
+      			<div className={styles.member3}>Head of VFX</div>
       			<img className={styles.frameChild11} src="/assets/images/members/IMG_255411 [1].JPG" alt="" />
       			<img className={styles.frameChild12} src="/assets/images/members/WhatsApp Image 2025-09-12 at 13.34.52_4f31c18c.jpg" alt="" />
       			<img className={styles.frameChild13} src="/assets/images/members/ABC_6075.webp" alt="" />
