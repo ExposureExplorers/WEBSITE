@@ -1,0 +1,323 @@
+.desktop1 {
+  width: 100%;
+  min-height: 1343px;
+  position: relative;
+  background-color: #fff;
+  overflow: hidden;
+  text-align: left;
+  font-size: 38px;
+  color: #a6a6a6;
+  font-family: Montserrat, sans-serif;
+}
+
+.image1Icon {
+  position: absolute;
+  top: 188px;
+  left: 38px;
+  width: 384px;
+  height: 512px;
+  object-fit: cover;
+}
+
+.image4Icon {
+  position: absolute;
+  top: 857px;
+  left: 442px;
+  width: 486px;
+  height: 648px;
+  object-fit: cover;
+}
+
+.image3Icon {
+  position: absolute;
+  top: 188px;
+  left: 442px;
+  width: 486px;
+  height: 648px;
+  object-fit: cover;
+}
+
+.exposureExplorers1 {
+  position: absolute;
+  top: 78px;
+  left: 38px;
+  width: 230px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.exposureExplorersOversizedContainer {
+  position: absolute;
+  top: 188px;
+  left: 981px;
+  line-height: 104%;
+  color: #000;
+  display: inline-block;
+  width: 365px;
+  font-family: 'Helvetica Light', Helvetica, sans-serif;
+}
+
+.exposureExplorersOversized {
+  line-height: 104%;
+}
+
+.div {
+  position: absolute;
+  top: 303px;
+  left: 981px;
+  font-size: 32px;
+  letter-spacing: 0.04em;
+  line-height: 97%;
+  font-family: 'PP Editorial New', serif;
+  color: #000;
+}
+
+.desktop1Child {
+  position: absolute;
+  top: 383.9px;
+  left: 980.9px;
+  border-top: 0.2px solid #000;
+  width: 334.2px;
+  height: 0.2px;
+}
+
+.groupParent {
+  position: absolute;
+  top: 409px;
+  left: 981px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  text-align: center;
+  font-size: 24px;
+  color: #a6a6a6;
+}
+
+.rectangleParent {
+  height: 51px;
+  width: 51px;
+  position: relative;
+  cursor: pointer;
+}
+
+.groupChild {
+  position: absolute;
+  inset: 0;
+  background-color: transparent;
+  border: 0.2px solid #000;
+  box-sizing: border-box;
+}
+
+.xs,
+.xl {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  letter-spacing: 0.04em;
+  line-height: 97%;
+  white-space: nowrap;
+}
+
+.sizeGuide {
+  position: absolute;
+  top: 495px;
+  left: 980px;
+  font-size: 20px;
+  line-height: 97%;
+  text-align: center;
+  color: #a6a6a6;
+  cursor: pointer;
+}
+
+.desktop1Item {
+  position: absolute;
+  top: 539.9px;
+  left: 980.9px;
+  border-top: 0.2px solid #000;
+  width: 331.2px;
+  height: 0.2px;
+}
+
+.lineParent {
+  position: absolute;
+  top: 658px;
+  left: 980px;
+  width: 332px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 16px;
+  color: #a6a6a6;
+}
+
+.frameChild {
+  align-self: stretch;
+  height: 0.2px;
+  border-top: 0.2px solid #000;
+}
+
+.description {
+  align-self: stretch;
+  line-height: 97%;
+  white-space: pre-wrap;
+  cursor: pointer;
+}
+
+.image4Icon2 {
+  position: absolute;
+  top: 738px;
+  left: 41px;
+  width: 378px;
+  height: 504px;
+  object-fit: cover;
+}
+
+/* BUY NOW button on product page */
+.buyNowWrapper {
+  position: absolute;
+  top: 571px;
+  left: 981px;
+  width: 331px;
+  height: 55px;
+  cursor: pointer;
+}
+
+.desktop1Inner {
+  position: absolute;
+  inset: 0;
+  background-color: #000;
+}
+
+.buyNow {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 600;
+  color: #fff;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+}
+
+/* Accordion content */
+.accordionContent {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+  padding: 12px 0 8px;
+  max-width: 332px;
+}
+
+.description {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ========== MOBILE STYLES ========== */
+@media (max-width: 768px) {
+  .desktop1 {
+    font-size: 24px;
+    min-height: auto;
+    padding-bottom: 80px;
+  }
+
+  .image1Icon,
+  .image3Icon,
+  .image4Icon,
+  .image4Icon2 {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .exposureExplorers1 {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 160px;
+    height: auto;
+    margin: 24px 20px 16px;
+  }
+
+  .exposureExplorersOversizedContainer {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    margin: 0 20px 12px;
+    font-size: 22px;
+  }
+
+  .div {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 0 20px 20px;
+    font-size: 26px;
+  }
+
+  .desktop1Child,
+  .desktop1Item {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: calc(100% - 40px);
+    margin: 0 20px 20px;
+  }
+
+  .groupParent {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 0 20px 16px;
+    gap: 12px;
+  }
+
+  .rectangleParent {
+    width: 44px;
+    height: 44px;
+  }
+
+  .xs,
+  .xl {
+    font-size: 16px;
+  }
+
+  .sizeGuide {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 0 20px 20px;
+    font-size: 16px;
+  }
+
+  .lineParent {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: calc(100% - 40px);
+    margin: 0 20px 30px;
+  }
+
+  .buyNowWrapper {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: calc(100% - 40px);
+    margin: 0 20px 40px;
+    height: 52px;
+  }
+
+  .buyNow {
+    font-size: 22px;
+  }
+}
