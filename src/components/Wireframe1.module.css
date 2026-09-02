@@ -41,6 +41,11 @@
   height: 55px;
   margin-bottom: 80px;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.buttonWrapper:hover {
+  transform: scale(1.05);
 }
 
 .wireframe1Child {
