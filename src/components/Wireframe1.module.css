@@ -19,9 +19,15 @@
 .merchIsLiveContainer {
   letter-spacing: 0.04em;
   line-height: 101%;
-  display: inline-block;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
   margin-bottom: 48px;
+}
+.line1,
+.line2 {
+  display: block;
 }
 
 .merch {

@@ -11,10 +11,14 @@ const Wireframe1 = () => {
   return (
     <div className={styles.wireframe1}>
       <div className={styles.merchIsLiveContainer}>
-        <span className={styles.merch}>Merch </span>
-        <span className={styles.is}>is</span>
-        <span className={styles.merch}> Live.</span>
-      </div>
+  <div className={styles.line1}>
+    <span className={styles.merch}>Merch </span>
+    <span className={styles.is}>is</span>
+  </div>
+  <div className={styles.line2}>
+    <span className={styles.merch}>Live.</span>
+  </div>
+</div>
 
       {/* Clickable BUY NOW button */}
       <div

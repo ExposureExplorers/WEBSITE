@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600&display=swap');
+
 :root {
   --gap-columns: 53px;
   --gap-images: 20px;
@@ -123,6 +125,15 @@
   box-sizing: border-box;
 }
 
+.rectangleParent.sizeActive .groupChild {
+  background-color: #000;
+}
+
+.rectangleParent.sizeActive .xs,
+.rectangleParent.sizeActive .xl {
+  color: #fff;
+}
+
 .xs,
 .xl {
   position: absolute;
@@ -167,14 +178,28 @@
   border-top: 0.2px solid #000;
 }
 
+/* Description & Care — cursor stays default (no pointer change) */
 .description {
   align-self: stretch;
   line-height: 97%;
   white-space: pre-wrap;
-  cursor: pointer;
   user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 
+.description span {
+  pointer-events: none;
+}
 .accordionContent {
   font-size: 14px;
   line-height: 1.5;
@@ -185,6 +210,7 @@
 
 /* BUY NOW button */
 .buyNowWrapper {
+  position: relative;
   width: 100%;
   height: 55px;
   cursor: pointer;
@@ -209,10 +235,6 @@
   color: #fff;
   pointer-events: none;
   letter-spacing: 0.02em;
-}
-
-.buyNowWrapper {
-  position: relative;
 }
 
 /* ========== MOBILE STYLES ========== */

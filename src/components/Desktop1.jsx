@@ -3,6 +3,7 @@ import styles from './Desktop1.module.css';
 
 const Desktop1 = () => {
   const [openSection, setOpenSection] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
@@ -13,10 +14,10 @@ const Desktop1 = () => {
       {/* LEFT: scrollable image column */}
       <div className={styles.leftColumn}>
         <img
-          className={styles.exposureExplorers1}
-          src="/assets/merch/logo.png"
-          alt="Exposure Explorers Logo"
-        />
+  className={styles.exposureExplorers1}
+  src="/assets/icons/exposure-explorers.svg"
+  alt="Exposure Explorers Logo"
+/>
 
         <div className={styles.imageGrid}>
           <div className={styles.imageCol}>
@@ -59,7 +60,11 @@ const Desktop1 = () => {
 
         <div className={styles.groupParent}>
           {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
-            <div key={size} className={styles.rectangleParent}>
+            <div
+              key={size}
+              className={`${styles.rectangleParent} ${selectedSize === size ? styles.sizeActive : ''}`}
+              onClick={() => setSelectedSize(size)}
+            >
               <div className={styles.groupChild} />
               <div className={size === 'XL' ? styles.xl : styles.xs}>{size}</div>
             </div>
@@ -72,12 +77,15 @@ const Desktop1 = () => {
         <div className={styles.lineParent}>
           <div className={styles.frameChild} />
 
-          <div
-            className={styles.description}
-            onClick={() => toggleSection('description')}
-          >
-            DESCRIPTION                                                  {openSection === 'description' ? '−' : '+'}
-          </div>
+         <button
+  type="button"
+  className={styles.description}
+  onClick={() => toggleSection('description')}
+  aria-expanded={openSection === 'description'}
+>
+  <span>DESCRIPTION</span>
+  <span>{openSection === 'description' ? '−' : '+'}</span>
+</button>
 
           {openSection === 'description' && (
             <div className={styles.accordionContent}>
@@ -93,13 +101,15 @@ const Desktop1 = () => {
 
           <div className={styles.frameChild} />
 
-          <div
-            className={styles.description}
-            onClick={() => toggleSection('care')}
-          >
-            CARE                                                                  {openSection === 'care' ? '−' : '+'}
-          </div>
-
+         <button
+  type="button"
+  className={styles.description}
+  onClick={() => toggleSection('care')}
+  aria-expanded={openSection === 'care'}
+>
+  <span>CARE</span>
+  <span>{openSection === 'care' ? '−' : '+'}</span>
+</button>
           {openSection === 'care' && (
             <div className={styles.accordionContent}>
               Machine wash cold with similar colors. Do not bleach. Tumble dry low
