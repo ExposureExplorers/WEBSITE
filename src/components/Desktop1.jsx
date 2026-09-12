@@ -46,82 +46,66 @@ const Desktop1 = () => {
     ].join('\n');
   };
 
-  const downloadReceipt = (e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-
-    if (!orderSuccess?.orderId) {
-      setMessage('No receipt available.');
-      return;
-    }
-
-    try {
-      const text = buildReceiptText(orderSuccess);
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `EE_Receipt_${orderSuccess.orderId}.txt`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 150);
-    } catch (err) {
-      console.error('Download failed:', err);
-      setMessage('Could not download receipt. Try again.');
-    }
-  };
-
-  const printReceipt = (e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-
+  // Standalone download — no new tab, no site conflict
+  const downloadReceipt = () => {
     if (!orderSuccess?.orderId) return;
 
-    const text = buildReceiptText(orderSuccess)
+    const text = buildReceiptText(orderSuccess);
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `EE_Receipt_${orderSuccess.orderId}.txt`);
+    a.setAttribute('target', '_self');
+    a.style.position = 'fixed';
+    a.style.left = '-9999px';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  // Standalone print — hidden iframe only
+  const printReceipt = () => {
+    if (!orderSuccess?.orderId) return;
+
+    const text = buildReceiptText(orderSuccess);
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`<!DOCTYPE html><html><head><title>Receipt</title>
+      <style>
+        body{font-family:monospace;padding:24px;color:#000}
+        pre{white-space:pre-wrap;font-size:13px;line-height:1.5}
+      </style>
+    </head><body><pre>${text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+      .replace(/>/g, '&gt;')}</pre></body></html>`);
+    doc.close();
 
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Receipt ${orderSuccess.orderId}</title>
-  <style>
-    body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; padding: 32px; color: #000; }
-    pre { white-space: pre-wrap; font-size: 13px; line-height: 1.5; }
-    @media print { body { padding: 0; } }
-  </style>
-</head>
-<body>
-  <pre>${text}</pre>
-</body>
-</html>`;
-
-    const w = window.open('', '_blank', 'noopener,noreferrer,width=520,height=700');
-    if (!w) {
-      setMessage('Popup blocked. Allow popups to print, or use Download receipt.');
-      return;
-    }
-
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-
-    w.onload = () => {
+    setTimeout(() => {
       try {
-        w.focus();
-        w.print();
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
       } catch (err) {
         console.error(err);
       }
-    };
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 1000);
+    }, 300);
   };
 
   const handleBuyNow = async () => {
@@ -233,12 +217,6 @@ const Desktop1 = () => {
               Back to product
             </button>
           </div>
-
-          {message && (
-            <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
-              {message}
-            </p>
-          )}
         </div>
       </div>
     );
