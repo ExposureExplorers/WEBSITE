@@ -1,12 +1,107 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './Desktop1.module.css';
+
+const MERCH_AMOUNT_PAISE = 79900; // ₹799
 
 const Desktop1 = () => {
   const [openSection, setOpenSection] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (document.getElementById('razorpay-checkout-js')) return;
+    const script = document.createElement('script');
+    script.id = 'razorpay-checkout-js';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
+  };
+
+  const handleBuyNow = async () => {
+    if (!selectedSize) {
+      setMessage('Please select a size first.');
+      return;
+    }
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const orderRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: MERCH_AMOUNT_PAISE,
+          currency: 'INR',
+          receipt: `merch_${selectedSize}_${Date.now()}`,
+        }),
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) {
+        throw new Error(orderData.error || 'Failed to create order');
+      }
+
+      const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!key) throw new Error('Razorpay key not configured');
+      if (!window.Razorpay) throw new Error('Razorpay SDK not loaded. Refresh and try again.');
+
+      const options = {
+        key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Exposure Explorers',
+        description: `Oversized T-Shirt — Size ${selectedSize}`,
+        order_id: orderData.order_id,
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+              setMessage('Payment successful! Thank you for your order.');
+            } else {
+              setMessage(verifyData.error || 'Payment verification failed.');
+            }
+          } catch (err) {
+            console.error(err);
+            setMessage('Payment received but verification failed. Contact support.');
+          } finally {
+            setLoading(false);
+          }
+        },
+        theme: { color: '#000000' },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+            setMessage('Payment cancelled.');
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        setMessage(response.error?.description || 'Payment failed. Please try again.');
+        setLoading(false);
+      });
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      setMessage(err.message || 'Something went wrong. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -14,10 +109,10 @@ const Desktop1 = () => {
       {/* LEFT: scrollable image column */}
       <div className={styles.leftColumn}>
         <img
-  className={styles.exposureExplorers1}
-  src="/assets/icons/exposure-explorers.svg"
-  alt="Exposure Explorers Logo"
-/>
+          className={styles.exposureExplorers1}
+          src="/assets/icons/exposure-explorers.svg"
+          alt="Exposure Explorers Logo"
+        />
 
         <div className={styles.imageGrid}>
           <div className={styles.imageCol}>
@@ -72,20 +167,22 @@ const Desktop1 = () => {
         </div>
 
         <div className={styles.sizeGuide}>SIZE GUIDE</div>
+
+        {/* Single divider between Size Guide and Description */}
         <div className={styles.desktop1Item} />
 
         <div className={styles.lineParent}>
-          <div className={styles.frameChild} />
+          {/* No extra line here — was causing double lines */}
 
-         <button
-  type="button"
-  className={styles.description}
-  onClick={() => toggleSection('description')}
-  aria-expanded={openSection === 'description'}
->
-  <span>DESCRIPTION</span>
-  <span>{openSection === 'description' ? '−' : '+'}</span>
-</button>
+          <button
+            type="button"
+            className={styles.description}
+            onClick={() => toggleSection('description')}
+            aria-expanded={openSection === 'description'}
+          >
+            <span>DESCRIPTION</span>
+            <span>{openSection === 'description' ? '−' : '+'}</span>
+          </button>
 
           {openSection === 'description' && (
             <div className={styles.accordionContent}>
@@ -101,15 +198,16 @@ const Desktop1 = () => {
 
           <div className={styles.frameChild} />
 
-         <button
-  type="button"
-  className={styles.description}
-  onClick={() => toggleSection('care')}
-  aria-expanded={openSection === 'care'}
->
-  <span>CARE</span>
-  <span>{openSection === 'care' ? '−' : '+'}</span>
-</button>
+          <button
+            type="button"
+            className={styles.description}
+            onClick={() => toggleSection('care')}
+            aria-expanded={openSection === 'care'}
+          >
+            <span>CARE</span>
+            <span>{openSection === 'care' ? '−' : '+'}</span>
+          </button>
+
           {openSection === 'care' && (
             <div className={styles.accordionContent}>
               Machine wash cold with similar colors. Do not bleach. Tumble dry low
@@ -122,11 +220,30 @@ const Desktop1 = () => {
           <div className={styles.frameChild} />
         </div>
 
-        {/* Buy Now button */}
-        <div className={styles.buyNowWrapper}>
+        {/* Buy Now → Razorpay */}
+        <div
+          className={styles.buyNowWrapper}
+          onClick={loading ? undefined : handleBuyNow}
+          role="button"
+          style={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}
+        >
           <div className={styles.desktop1Inner} />
-          <div className={styles.buyNow}>BUY NOW</div>
+          <div className={styles.buyNow}>
+            {loading ? 'PROCESSING...' : 'BUY NOW'}
+          </div>
         </div>
+
+        {message && (
+          <p
+            style={{
+              marginTop: 12,
+              fontSize: 14,
+              color: message.includes('successful') ? '#0a0' : '#c00',
+            }}
+          >
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );

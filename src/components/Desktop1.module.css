@@ -178,7 +178,7 @@
   border-top: 0.2px solid #000;
 }
 
-/* Description & Care — cursor stays default (no pointer change) */
+/* Description & Care — cursor stays default */
 .description {
   align-self: stretch;
   line-height: 97%;
@@ -195,11 +195,13 @@
   font: inherit;
   color: inherit;
   text-align: left;
+  cursor: default;
 }
 
 .description span {
   pointer-events: none;
 }
+
 .accordionContent {
   font-size: 14px;
   line-height: 1.5;
@@ -242,21 +244,50 @@
   .desktop1 {
     flex-direction: column;
     font-size: 24px;
-    padding: 24px 20px 80px;
+    padding: 24px 0 80px;
     gap: 0;
   }
 
   .leftColumn {
     width: 100%;
     gap: 16px;
+    padding: 0 20px;
   }
 
+  .exposureExplorers1 {
+    width: 160px;
+    margin-bottom: 8px;
+  }
+
+  /* Horizontal left → right image scroll */
   .imageGrid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    margin: 0 -20px;
+    padding: 0 20px 8px;
   }
 
   .imageCol {
-    display: contents;
+    display: contents; /* all 4 images in one horizontal row */
+  }
+
+  .image1Icon,
+  .image4Icon,
+  .image3Icon,
+  .image4Icon2 {
+    flex: 0 0 78vw;
+    width: 78vw;
+    max-width: 320px;
+    height: auto;
+    object-fit: cover;
+    scroll-snap-align: start;
+    border-radius: 4px;
   }
 
   .rightColumn {
@@ -264,11 +295,7 @@
     top: auto;
     width: 100%;
     margin-top: 24px;
-  }
-
-  .exposureExplorers1 {
-    width: 160px;
-    margin-bottom: 8px;
+    padding: 0 20px;
   }
 
   .exposureExplorersOversizedContainer {
