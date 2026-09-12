@@ -3,6 +3,17 @@ import styles from './Desktop1.module.css';
 
 const MERCH_AMOUNT_PAISE = 79900; // ₹799
 
+async function parseJsonResponse(res) {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    throw new Error(
+      `Server returned non-JSON (status ${res.status}): ${text.slice(0, 200)}`
+    );
+  }
+  return res.json();
+}
+
 const Desktop1 = () => {
   const [openSection, setOpenSection] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -42,7 +53,7 @@ const Desktop1 = () => {
         }),
       });
 
-      const orderData = await orderRes.json();
+      const orderData = await parseJsonResponse(orderRes);
       if (!orderRes.ok) {
         throw new Error(orderData.error || 'Failed to create order');
       }
@@ -69,7 +80,7 @@ const Desktop1 = () => {
                 razorpay_signature: response.razorpay_signature,
               }),
             });
-            const verifyData = await verifyRes.json();
+            const verifyData = await parseJsonResponse(verifyRes);
             if (verifyRes.ok && verifyData.success) {
               setMessage('Payment successful! Thank you for your order.');
             } else {
@@ -77,7 +88,7 @@ const Desktop1 = () => {
             }
           } catch (err) {
             console.error(err);
-            setMessage('Payment received but verification failed. Contact support.');
+            setMessage(err.message || 'Payment received but verification failed. Contact support.');
           } finally {
             setLoading(false);
           }
@@ -172,8 +183,6 @@ const Desktop1 = () => {
         <div className={styles.desktop1Item} />
 
         <div className={styles.lineParent}>
-          {/* No extra line here — was causing double lines */}
-
           <button
             type="button"
             className={styles.description}
