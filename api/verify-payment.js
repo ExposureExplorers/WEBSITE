@@ -6,28 +6,25 @@ export default async function handler(req, res) {
   }
 
   try {
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) {
+      console.error('Missing RAZORPAY_KEY_SECRET env var');
+      return res.status(500).json({ error: 'Razorpay secret not configured' });
+    }
+
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ error: 'Missing payment verification fields' });
     }
 
-    const secret = process.env.RAZORPAY_KEY_SECRET;
-    if (!secret) {
-      return res.status(500).json({ error: 'Razorpay secret not configured' });
-    }
-
-    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSignature = crypto
       .createHmac('sha256', secret)
-      .update(body)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
     if (expectedSignature !== razorpay_signature) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid payment signature',
-      });
+      return res.status(400).json({ success: false, error: 'Invalid payment signature' });
     }
 
     return res.status(200).json({
@@ -38,6 +35,6 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error('Verify payment error:', err);
-    return res.status(500).json({ error: 'Verification failed' });
+    return res.status(500).json({ error: err?.message || 'Verification failed' });
   }
 }
