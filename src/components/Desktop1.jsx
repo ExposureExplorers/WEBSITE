@@ -1,14 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './Desktop1.module.css';
-import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
 const MERCH_AMOUNT_PAISE = 79900; // ₹799
+
+async function parseJsonResponse(res) {
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    throw new Error(`Server returned non-JSON (status ${res.status}): ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
 
 const Desktop1 = () => {
   const [openSection, setOpenSection] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (document.getElementById('razorpay-checkout-js')) return;
+    const script = document.createElement('script');
+    script.id = 'razorpay-checkout-js';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
@@ -23,24 +40,77 @@ const Desktop1 = () => {
     setLoading(true);
     setMessage('');
 
-    await openRazorpayCheckout({
-      amountPaise: MERCH_AMOUNT_PAISE,
-      name: 'Exposure Explorers',
-      description: `Oversized T-Shirt — Size ${selectedSize}`,
-      receipt: `merch_${selectedSize}_${Date.now()}`,
-      onSuccess: () => {
-        setMessage('Payment successful! Thank you for your order.');
+    try {
+      const orderRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: MERCH_AMOUNT_PAISE,
+          currency: 'INR',
+          receipt: `merch_${selectedSize}_${Date.now()}`,
+        }),
+      });
+
+      const orderData = await parseJsonResponse(orderRes);
+      if (!orderRes.ok) {
+        throw new Error(orderData.error || 'Failed to create order');
+      }
+
+      const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!key) throw new Error('Razorpay key not configured');
+      if (!window.Razorpay) throw new Error('Razorpay SDK not loaded. Refresh and try again.');
+
+      const options = {
+        key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Exposure Explorers',
+        description: `Oversized T-Shirt — Size ${selectedSize}`,
+        order_id: orderData.order_id,
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await parseJsonResponse(verifyRes);
+            if (verifyRes.ok && verifyData.success) {
+              setMessage('Payment successful! Thank you for your order.');
+            } else {
+              setMessage(verifyData.error || 'Payment verification failed.');
+            }
+          } catch (err) {
+            console.error(err);
+            setMessage(err.message || 'Payment received but verification failed. Contact support.');
+          } finally {
+            setLoading(false);
+          }
+        },
+        theme: { color: '#000000' },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+            setMessage('Payment cancelled.');
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        setMessage(response.error?.description || 'Payment failed. Please try again.');
         setLoading(false);
-      },
-      onError: (msg) => {
-        setMessage(msg);
-        setLoading(false);
-      },
-      onDismiss: () => {
-        setMessage('Payment cancelled.');
-        setLoading(false);
-      },
-    });
+      });
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      setMessage(err.message || 'Something went wrong. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
