@@ -1,87 +1,107 @@
-// Loads the Razorpay checkout script once, creates an order via the backend,
-// opens the payment modal, and verifies the payment on success.
-//
-// Usage:
-//   import { openRazorpayCheckout } from '@/lib/razorpayCheckout';
-//
-//   await openRazorpayCheckout({
-//     amountPaise: 79900,
-//     name: 'Exposure Explorers',
-//     description: 'Oversized T-Shirt — Size M',
-//     receipt: `merch_M_${Date.now()}`,
-//     onSuccess: () => setMessage('Payment successful!'),
-//     onError: (msg) => setMessage(msg),
-//     onDismiss: () => setMessage('Payment cancelled.'),
-//   });
-
-let scriptLoadPromise = null;
-
 function loadRazorpayScript() {
-  if (window.Razorpay) return Promise.resolve();
-  if (scriptLoadPromise) return scriptLoadPromise;
+  return new Promise((resolve, reject) => {
+    if (window.Razorpay) {
+      resolve();
+      return;
+    }
 
-  scriptLoadPromise = new Promise((resolve, reject) => {
     const existing = document.getElementById('razorpay-checkout-js');
     if (existing) {
       existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', () => reject(new Error('Failed to load Razorpay script')));
+      existing.addEventListener('error', () =>
+        reject(new Error('Failed to load Razorpay'))
+      );
       return;
     }
+
     const script = document.createElement('script');
     script.id = 'razorpay-checkout-js';
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Razorpay script'));
+    script.onerror = () => reject(new Error('Failed to load Razorpay'));
     document.body.appendChild(script);
   });
-
-  return scriptLoadPromise;
 }
 
-async function parseJsonResponse(res) {
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    const text = await res.text();
-    throw new Error(`Server returned non-JSON (status ${res.status}): ${text.slice(0, 200)}`);
-  }
-  return res.json();
-}
-
+/**
+ * Open Razorpay Standard Checkout
+ *
+ * @param {Object} params
+ * @param {number} params.amountPaise - Amount in paise (min 100)
+ * @param {string} [params.name]
+ * @param {string} [params.description]
+ * @param {string} [params.receipt]
+ * @param {function} [params.onSuccess] - Called with verified payment details
+ * @param {function} [params.onError] - Called with error message string
+ * @param {function} [params.onDismiss] - Called when modal is closed
+ */
 export async function openRazorpayCheckout({
   amountPaise,
-  currency = 'INR',
+  name = 'Exposure Explorers',
+  description = 'Order',
   receipt,
-  name,
-  description,
   onSuccess,
   onError,
   onDismiss,
 }) {
   try {
-    await loadRazorpayScript();
-
-    const orderRes = await fetch('/api/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: amountPaise, currency, receipt }),
-    });
-    const orderData = await parseJsonResponse(orderRes);
-    if (!orderRes.ok) {
-      throw new Error(orderData.error || 'Failed to create order');
+    if (!amountPaise || amountPaise < 100) {
+      onError?.('Invalid amount');
+      return;
     }
 
     const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
-    if (!key) throw new Error('Razorpay key not configured (VITE_RAZORPAY_KEY_ID)');
+    if (!key) {
+      onError?.('Razorpay key missing (VITE_RAZORPAY_KEY_ID)');
+      return;
+    }
 
+    // 1) Create order on backend
+    const orderRes = await fetch('/api/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: amountPaise,
+        currency: 'INR',
+        receipt: receipt || `receipt_${Date.now()}`,
+      }),
+    });
+
+    const raw = await orderRes.text();
+    let orderData;
+    try {
+      orderData = JSON.parse(raw);
+    } catch {
+      console.error('create-order non-JSON:', raw.slice(0, 400));
+      onError?.(
+        'Payment server error. Use vercel dev or deploy API routes.'
+      );
+      return;
+    }
+
+    if (!orderRes.ok) {
+      onError?.(orderData.error || 'Failed to create order');
+      return;
+    }
+
+    if (!orderData.order_id || !orderData.amount) {
+      onError?.('Invalid order response from server');
+      return;
+    }
+
+    // 2) Load Razorpay SDK
+    await loadRazorpayScript();
+
+    // 3) Open checkout — amount & order_id MUST come from API
     const options = {
       key,
       amount: orderData.amount,
-      currency: orderData.currency,
+      currency: orderData.currency || 'INR',
       name,
       description,
       order_id: orderData.order_id,
-      handler: async (response) => {
+      handler: async function (response) {
         try {
           const verifyRes = await fetch('/api/verify-payment', {
             method: 'POST',
@@ -92,28 +112,65 @@ export async function openRazorpayCheckout({
               razorpay_signature: response.razorpay_signature,
             }),
           });
-          const verifyData = await parseJsonResponse(verifyRes);
+
+          const verifyRaw = await verifyRes.text();
+          let verifyData;
+          try {
+            verifyData = JSON.parse(verifyRaw);
+          } catch {
+            onError?.('Verification server error');
+            return;
+          }
+
           if (verifyRes.ok && verifyData.success) {
-            onSuccess?.(verifyData);
+            // Pass full details for receipt / success UI
+            onSuccess?.({
+              ...verifyData,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: orderData.amount,
+              currency: orderData.currency || 'INR',
+              order_id: response.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+            });
           } else {
-            onError?.(verifyData.error || 'Payment verification failed.');
+            onError?.(verifyData.error || 'Payment verification failed');
           }
         } catch (err) {
-          onError?.(err.message || 'Payment received but verification failed. Contact support.');
+          console.error(err);
+          onError?.('Payment received but verification failed');
         }
       },
-      theme: { color: '#000000' },
+      theme: {
+        color: '#000000',
+      },
       modal: {
-        ondismiss: () => onDismiss?.(),
+        ondismiss: function () {
+          onDismiss?.();
+        },
       },
     };
 
-    const rzp = new window.Razorpay(options);
-    rzp.on('payment.failed', (response) => {
-      onError?.(response.error?.description || 'Payment failed. Please try again.');
+    console.log('Razorpay checkout options:', {
+      key: options.key,
+      amount: options.amount,
+      currency: options.currency,
+      order_id: options.order_id,
     });
+
+    const rzp = new window.Razorpay(options);
+
+    rzp.on('payment.failed', function (response) {
+      console.error('Razorpay payment.failed:', response.error);
+      onError?.(
+        response.error?.description || 'Payment failed. Please try again.'
+      );
+    });
+
     rzp.open();
   } catch (err) {
-    onError?.(err.message || 'Something went wrong. Please try again.');
+    console.error(err);
+    onError?.(err.message || 'Something went wrong');
   }
 }
