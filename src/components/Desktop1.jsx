@@ -10,7 +10,7 @@ const Desktop1 = () => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [orderSuccess, setOrderSuccess] = useState(null); // holds paid order details
+  const [orderSuccess, setOrderSuccess] = useState(null);
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
@@ -25,63 +25,103 @@ const Desktop1 = () => {
       timeStyle: 'short',
     });
 
-    return `
-EXPOSURE EXPLORERS
---------------------------------
-PAYMENT RECEIPT
---------------------------------
-Status:          PAID
-Date:            ${date}
-
-Product:         ${order.product}
-Size:            ${order.size}
-Amount:          ${formatAmount(order.amount)}
-Currency:        ${order.currency}
-
-Order ID:        ${order.orderId}
-Payment ID:      ${order.paymentId}
---------------------------------
-Thank you for your order!
-exposure.explorers@nitgoa.ac.in
-`.trim();
+    return [
+      'EXPOSURE EXPLORERS',
+      '--------------------------------',
+      'PAYMENT RECEIPT',
+      '--------------------------------',
+      'Status:          PAID',
+      `Date:            ${date}`,
+      '',
+      `Product:         ${order.product}`,
+      `Size:            ${order.size}`,
+      `Amount:          ${formatAmount(order.amount)}`,
+      `Currency:        ${order.currency}`,
+      '',
+      `Order ID:        ${order.orderId}`,
+      `Payment ID:      ${order.paymentId}`,
+      '--------------------------------',
+      'Thank you for your order!',
+      'exposure.explorers@nitgoa.ac.in',
+    ].join('\n');
   };
 
-  const downloadReceipt = () => {
-    if (!orderSuccess) return;
-    const text = buildReceiptText(orderSuccess);
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `receipt_${orderSuccess.orderId}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+  const downloadReceipt = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+
+    if (!orderSuccess?.orderId) {
+      setMessage('No receipt available.');
+      return;
+    }
+
+    try {
+      const text = buildReceiptText(orderSuccess);
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `EE_Receipt_${orderSuccess.orderId}.txt`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 150);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setMessage('Could not download receipt. Try again.');
+    }
   };
 
-  const printReceipt = () => {
-    if (!orderSuccess) return;
-    const text = buildReceiptText(orderSuccess);
-    const w = window.open('', '_blank', 'width=480,height=640');
-    if (!w) return;
-    w.document.write(`
-      <html>
-        <head>
-          <title>Receipt — ${orderSuccess.orderId}</title>
-          <style>
-            body { font-family: ui-monospace, monospace; padding: 32px; white-space: pre-wrap; }
-            h1 { font-size: 18px; margin-bottom: 16px; }
-          </style>
-        </head>
-        <body>
-          <h1>Payment Receipt</h1>
-          <pre>${text.replace(/</g, '&lt;')}</pre>
-          <script>window.onload = function(){ window.print(); }</script>
-        </body>
-      </html>
-    `);
+  const printReceipt = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+
+    if (!orderSuccess?.orderId) return;
+
+    const text = buildReceiptText(orderSuccess)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Receipt ${orderSuccess.orderId}</title>
+  <style>
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; padding: 32px; color: #000; }
+    pre { white-space: pre-wrap; font-size: 13px; line-height: 1.5; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <pre>${text}</pre>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank', 'noopener,noreferrer,width=520,height=700');
+    if (!w) {
+      setMessage('Popup blocked. Allow popups to print, or use Download receipt.');
+      return;
+    }
+
+    w.document.open();
+    w.document.write(html);
     w.document.close();
+
+    w.onload = () => {
+      try {
+        w.focus();
+        w.print();
+      } catch (err) {
+        console.error(err);
+      }
+    };
   };
 
   const handleBuyNow = async () => {
@@ -167,10 +207,18 @@ exposure.explorers@nitgoa.ac.in
           </div>
 
           <div className={styles.successActions}>
-            <button type="button" className={styles.primaryBtn} onClick={downloadReceipt}>
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              onClick={downloadReceipt}
+            >
               Download receipt
             </button>
-            <button type="button" className={styles.secondaryBtn} onClick={printReceipt}>
+            <button
+              type="button"
+              className={styles.secondaryBtn}
+              onClick={printReceipt}
+            >
               Print receipt
             </button>
             <button
@@ -185,6 +233,12 @@ exposure.explorers@nitgoa.ac.in
               Back to product
             </button>
           </div>
+
+          {message && (
+            <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
+              {message}
+            </p>
+          )}
         </div>
       </div>
     );
@@ -202,12 +256,28 @@ exposure.explorers@nitgoa.ac.in
 
         <div className={styles.imageGrid}>
           <div className={styles.imageCol}>
-            <img className={styles.image1Icon} src="/assets/merch/product-1.png" alt="Product front" />
-            <img className={styles.image4Icon2} src="/assets/merch/product-4.png" alt="Product back" />
+            <img
+              className={styles.image1Icon}
+              src="/assets/merch/product-1.png"
+              alt="Product front"
+            />
+            <img
+              className={styles.image4Icon2}
+              src="/assets/merch/product-4.png"
+              alt="Product back"
+            />
           </div>
           <div className={styles.imageCol}>
-            <img className={styles.image3Icon} src="/assets/merch/product-2.png" alt="Product lifestyle" />
-            <img className={styles.image4Icon} src="/assets/merch/product-3.png" alt="Product detail" />
+            <img
+              className={styles.image3Icon}
+              src="/assets/merch/product-2.png"
+              alt="Product lifestyle"
+            />
+            <img
+              className={styles.image4Icon}
+              src="/assets/merch/product-3.png"
+              alt="Product detail"
+            />
           </div>
         </div>
       </div>
@@ -226,7 +296,9 @@ exposure.explorers@nitgoa.ac.in
           {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
             <div
               key={size}
-              className={`${styles.rectangleParent} ${selectedSize === size ? styles.sizeActive : ''}`}
+              className={`${styles.rectangleParent} ${
+                selectedSize === size ? styles.sizeActive : ''
+              }`}
               onClick={() => setSelectedSize(size)}
             >
               <div className={styles.groupChild} />
@@ -251,9 +323,10 @@ exposure.explorers@nitgoa.ac.in
 
           {openSection === 'description' && (
             <div className={styles.accordionContent}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-              tempor incididunt ut labore et dolore magna aliqua. Made from 100%
-              premium cotton with an oversized fit. Limited edition by Exposure Explorers.
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua. Made
+              from 100% premium cotton with an oversized fit. Limited edition by
+              Exposure Explorers.
             </div>
           )}
 
@@ -271,8 +344,8 @@ exposure.explorers@nitgoa.ac.in
 
           {openSection === 'care' && (
             <div className={styles.accordionContent}>
-              Machine wash cold with similar colors. Do not bleach. Tumble dry low
-              or hang dry. Iron on low heat if needed. Wash inside out.
+              Machine wash cold with similar colors. Do not bleach. Tumble dry
+              low or hang dry. Iron on low heat if needed. Wash inside out.
             </div>
           )}
 
@@ -283,10 +356,15 @@ exposure.explorers@nitgoa.ac.in
           className={styles.buyNowWrapper}
           onClick={loading ? undefined : handleBuyNow}
           role="button"
-          style={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}
+          style={{
+            opacity: loading ? 0.6 : 1,
+            pointerEvents: loading ? 'none' : 'auto',
+          }}
         >
           <div className={styles.desktop1Inner} />
-          <div className={styles.buyNow}>{loading ? 'PROCESSING...' : 'BUY NOW'}</div>
+          <div className={styles.buyNow}>
+            {loading ? 'PROCESSING...' : 'BUY NOW'}
+          </div>
         </div>
 
         {message && (
