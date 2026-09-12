@@ -328,3 +328,121 @@
     font-size: 22px;
   }
 }
+
+/* ===== ORDER SUCCESS ===== */
+.successPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #f5f5f5;
+  font-family: Montserrat, sans-serif;
+}
+
+.successCard {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  padding: 40px 32px;
+}
+
+.successBadge {
+  display: inline-block;
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  margin-bottom: 20px;
+}
+
+.successTitle {
+  margin: 0 0 8px;
+  font-size: 28px;
+  color: #000;
+  font-weight: 600;
+}
+
+.successSubtitle {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.successDetails {
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  padding: 16px 0;
+  margin-bottom: 28px;
+}
+
+.successRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.successRow strong {
+  color: #000;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+.successActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.ghostBtn {
+  width: 100%;
+  height: 48px;
+  font-family: Montserrat, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: 1px solid #000;
+}
+
+.primaryBtn {
+  background: #000;
+  color: #fff;
+}
+
+.secondaryBtn {
+  background: #fff;
+  color: #000;
+}
+
+.ghostBtn {
+  background: transparent;
+  border-color: transparent;
+  color: #666;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .successCard {
+    padding: 28px 20px;
+  }
+
+  .successTitle {
+    font-size: 22px;
+  }
+}
