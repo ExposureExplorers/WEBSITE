@@ -1,8 +1,19 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Wireframe1.module.css';
 
+const AUTO_DISMISS_MS = 4000; // tune: how long the splash stays before going home
+
 const Wireframe1 = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/');
+    }, AUTO_DISMISS_MS);
+
+    return () => clearTimeout(timer);
+  }, [navigate]);
 
   const handleBuyNow = () => {
     navigate('/merch');
@@ -11,14 +22,14 @@ const Wireframe1 = () => {
   return (
     <div className={styles.wireframe1}>
       <div className={styles.merchIsLiveContainer}>
-  <div className={styles.line1}>
-    <span className={styles.merch}>Merch </span>
-    <span className={styles.is}>is</span>
-  </div>
-  <div className={styles.line2}>
-    <span className={styles.merch}>Live.</span>
-  </div>
-</div>
+        <div className={styles.line1}>
+          <span className={styles.merch}>Merch </span>
+          <span className={styles.is}>is</span>
+        </div>
+        <div className={styles.line2}>
+          <span className={styles.merch}>Live.</span>
+        </div>
+      </div>
 
       {/* Clickable BUY NOW button */}
       <div
