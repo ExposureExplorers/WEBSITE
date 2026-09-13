@@ -22,7 +22,7 @@
   font-size: 38px;
   color: #a6a6a6;
   font-family: Montserrat, sans-serif;
-  cursor: default;
+  cursor: inherit;
 }
 
 .leftColumn {
