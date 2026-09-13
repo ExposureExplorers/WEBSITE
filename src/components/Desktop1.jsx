@@ -91,7 +91,7 @@ const Desktop1 = () => {
           </span>
         </div>
 
-        <div className={styles.div}>₹ 799</div>
+        <div className={styles.div}>₹ 759</div>
         <div className={styles.desktop1Child} />
 
         {/* Size buttons */}
