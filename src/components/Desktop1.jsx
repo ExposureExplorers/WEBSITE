@@ -4,6 +4,9 @@ import styles from './Desktop1.module.css';
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
 const PAYMENT_LINK = 'https://rzp.io/rzp/gzd1Hfd';
 
+// Must match the custom field key in Razorpay Dashboard
+const RAZORPAY_SIZE_FIELD_KEY = 'Size';
+
 const Desktop1 = () => {
   const [openSection, setOpenSection] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -19,6 +22,8 @@ const Desktop1 = () => {
       return;
     }
 
+    setMessage('');
+
     try {
       sessionStorage.setItem(
         'ee_merch_pending',
@@ -31,12 +36,16 @@ const Desktop1 = () => {
       // ignore
     }
 
-    // Instant checkout via Razorpay Payment Link
-    window.location.href = PAYMENT_LINK;
+    const url = new URL(PAYMENT_LINK);
+    url.searchParams.set(RAZORPAY_SIZE_FIELD_KEY, selectedSize);
+    url.searchParams.set('size', selectedSize); // fallback
+
+    window.location.href = url.toString();
   };
 
   return (
     <div className={styles.desktop1}>
+      {/* LEFT: images */}
       <div className={styles.leftColumn}>
         <img
           className={styles.exposureExplorers1}
@@ -72,6 +81,7 @@ const Desktop1 = () => {
         </div>
       </div>
 
+      {/* RIGHT: product info */}
       <div className={styles.rightColumn}>
         <div className={styles.exposureExplorersOversizedContainer}>
           <span className={styles.exposureExplorersOversized}>
@@ -82,6 +92,7 @@ const Desktop1 = () => {
         <div className={styles.div}>₹ 799</div>
         <div className={styles.desktop1Child} />
 
+        {/* Size buttons */}
         <div className={styles.groupParent}>
           {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
             <div
@@ -89,7 +100,10 @@ const Desktop1 = () => {
               className={`${styles.rectangleParent} ${
                 selectedSize === size ? styles.sizeActive : ''
               }`}
-              onClick={() => setSelectedSize(size)}
+              onClick={() => {
+                setSelectedSize(size);
+                setMessage('');
+              }}
             >
               <div className={styles.groupChild} />
               <div className={size === 'XL' ? styles.xl : styles.xs}>{size}</div>
@@ -98,8 +112,16 @@ const Desktop1 = () => {
         </div>
 
         <div className={styles.sizeGuide}>SIZE GUIDE</div>
+
+        {/* Selected size field (like Description row) */}
+        <button type="button" className={styles.description} disabled>
+          <span>SIZE</span>
+          <span>{selectedSize || '—'}</span>
+        </button>
+
         <div className={styles.desktop1Item} />
 
+        {/* Description / Care */}
         <div className={styles.lineParent}>
           <button
             type="button"
@@ -154,6 +176,7 @@ const Desktop1 = () => {
           <div className={styles.frameChild} />
         </div>
 
+        {/* BUY NOW → Razorpay Payment Link + size */}
         <div
           className={styles.buyNowWrapper}
           onClick={handleBuyNow}
