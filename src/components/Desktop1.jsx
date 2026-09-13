@@ -116,10 +116,6 @@ const Desktop1 = () => {
         <div className={styles.sizeGuide}>SIZE GUIDE</div>
 
         {/* Selected size field (like Description row) */}
-        <button type="button" className={styles.description} disabled>
-          <span>SIZE</span>
-          <span>{selectedSize || '—'}</span>
-        </button>
 
         <div className={styles.desktop1Item} />
 
