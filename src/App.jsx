@@ -59,20 +59,30 @@ function App() {
 function InnerApp() {
   const location = useLocation();
   const showFrame50 = location.pathname === '/';
+  const isHome = location.pathname === '/';
+  const isMerch = location.pathname === '/merch';
 
-  // Splash screen logic
-  const [showSplash, setShowSplash] = useState(true);
+  // Splash only for homepage; merch is instant
+  const [showSplash, setShowSplash] = useState(() => isHome);
 
   useEffect(() => {
+    // Any non-home route (including /merch) → no splash
+    if (!isHome) {
+      setShowSplash(false);
+      return;
+    }
+
+    // Homepage only → 3.5s splash
+    setShowSplash(true);
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 3500); // 3.5 seconds
+    }, 3500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [isHome]);
 
-  // Show splash first
-  if (showSplash) {
+  // Homepage splash only
+  if (showSplash && isHome) {
     return <Wireframe1 />;
   }
 
@@ -98,5 +108,5 @@ function InnerApp() {
     </div>
   );
 }
-
+  
 export default App
