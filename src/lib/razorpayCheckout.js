@@ -24,37 +24,15 @@ function loadRazorpayScript() {
   });
 }
 
-// Call this on mount (e.g. useEffect) so the SDK is already
-// loaded by the time the user hits Buy Now.
 export function preloadRazorpayScript() {
-  loadRazorpayScript().catch(() => {
-    // swallow — openRazorpayCheckout will retry & surface a real error
-  });
+  loadRazorpayScript().catch(() => {});
 }
 
-/**
- * Open Razorpay Standard Checkout
- *
- * @param {Object} params
- * @param {number} params.amountPaise - Amount in paise (min 100)
- * @param {string} [params.name]
- * @param {string} [params.description]
- * @param {string} [params.receipt]
- * @param {string} [params.customerName]
- * @param {string} [params.customerEmail]
- * @param {string} [params.customerContact] - 10-digit phone, no country code
- * @param {function} [params.onSuccess]
- * @param {function} [params.onError]
- * @param {function} [params.onDismiss]
- */
 export async function openRazorpayCheckout({
   amountPaise,
   name = 'Exposure Explorers',
   description = 'Order',
   receipt,
-  customerName,
-  customerEmail,
-  customerContact,
   onSuccess,
   onError,
   onDismiss,
@@ -71,7 +49,6 @@ export async function openRazorpayCheckout({
       return;
     }
 
-    // 1) Create order on backend
     const orderRes = await fetch('/api/create-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -104,10 +81,8 @@ export async function openRazorpayCheckout({
       return;
     }
 
-    // 2) Load Razorpay SDK (no-op if preloaded already)
     await loadRazorpayScript();
 
-    // 3) Open checkout — amount & order_id MUST come from API
     const options = {
       key,
       amount: orderData.amount,
@@ -115,11 +90,6 @@ export async function openRazorpayCheckout({
       name,
       description,
       order_id: orderData.order_id,
-      prefill: {
-        name: customerName || '',
-        email: customerEmail || '',
-        contact: customerContact || '',
-      },
       handler: async function (response) {
         try {
           const verifyRes = await fetch('/api/verify-payment', {

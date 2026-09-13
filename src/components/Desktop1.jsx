@@ -12,12 +12,7 @@ const Desktop1 = () => {
   const [message, setMessage] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(null);
 
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-
-  // Preload Razorpay SDK as soon as the page mounts —
-  // kills the click-to-modal lag.
+  // Preload Razorpay SDK on mount — kills click-to-modal lag.
   useEffect(() => {
     preloadRazorpayScript();
   }, []);
@@ -116,24 +111,9 @@ const Desktop1 = () => {
     }, 300);
   };
 
-  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-  const isValidPhone = (v) => /^[6-9]\d{9}$/.test(v); // Indian 10-digit
-
   const handleBuyNow = async () => {
     if (!selectedSize) {
       setMessage('Please select a size first.');
-      return;
-    }
-    if (!customerName.trim()) {
-      setMessage('Please enter your name.');
-      return;
-    }
-    if (!isValidEmail(customerEmail)) {
-      setMessage('Please enter a valid email.');
-      return;
-    }
-    if (!isValidPhone(customerPhone)) {
-      setMessage('Please enter a valid 10-digit phone number.');
       return;
     }
 
@@ -146,9 +126,6 @@ const Desktop1 = () => {
       name: 'Exposure Explorers',
       description: `${PRODUCT_NAME} — Size ${selectedSize}`,
       receipt: `merch_${selectedSize}_${Date.now()}`,
-      customerName,
-      customerEmail,
-      customerContact: customerPhone,
       onSuccess: (data) => {
         setOrderSuccess({
           product: PRODUCT_NAME,
@@ -315,17 +292,20 @@ const Desktop1 = () => {
         <div className={styles.desktop1Item} />
 
         <div className={styles.lineParent}>
-          <button
-            type="button"
-            className={styles.description}
-            onClick={() => toggleSection('description')}
-            aria-expanded={openSection === 'description'}
-          >
-            <span>DESCRIPTION</span>
-            <span className={styles.accordionIcon}>
-              {openSection === 'description' ? '−' : '+'}
-            </span>
-          </button>
+          <div className={styles.accordionRow}>
+            <span className={styles.accordionLabel}>DESCRIPTION</span>
+            <button
+              type="button"
+              className={styles.accordionToggle}
+              onClick={() => toggleSection('description')}
+              aria-expanded={openSection === 'description'}
+              aria-label="Toggle description"
+            >
+              <span className={styles.accordionIcon}>
+                {openSection === 'description' ? '−' : '+'}
+              </span>
+            </button>
+          </div>
 
           <div
             className={styles.accordionWrapper}
@@ -341,17 +321,20 @@ const Desktop1 = () => {
 
           <div className={styles.frameChild} />
 
-          <button
-            type="button"
-            className={styles.description}
-            onClick={() => toggleSection('care')}
-            aria-expanded={openSection === 'care'}
-          >
-            <span>CARE</span>
-            <span className={styles.accordionIcon}>
-              {openSection === 'care' ? '−' : '+'}
-            </span>
-          </button>
+          <div className={styles.accordionRow}>
+            <span className={styles.accordionLabel}>CARE</span>
+            <button
+              type="button"
+              className={styles.accordionToggle}
+              onClick={() => toggleSection('care')}
+              aria-expanded={openSection === 'care'}
+              aria-label="Toggle care instructions"
+            >
+              <span className={styles.accordionIcon}>
+                {openSection === 'care' ? '−' : '+'}
+              </span>
+            </button>
+          </div>
 
           <div
             className={styles.accordionWrapper}
@@ -364,33 +347,6 @@ const Desktop1 = () => {
           </div>
 
           <div className={styles.frameChild} />
-        </div>
-
-        <div className={styles.customerForm}>
-          <input
-            type="text"
-            placeholder="Full name"
-            className={styles.formInput}
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            className={styles.formInput}
-            value={customerEmail}
-            onChange={(e) => setCustomerEmail(e.target.value)}
-          />
-          <input
-            type="tel"
-            placeholder="Phone (10 digits)"
-            className={styles.formInput}
-            value={customerPhone}
-            maxLength={10}
-            onChange={(e) =>
-              setCustomerPhone(e.target.value.replace(/\D/g, ''))
-            }
-          />
         </div>
 
         <div
