@@ -8,7 +8,6 @@ const SIZE_FIELD_KEY = 'size';
 function prefetchUrl(href) {
   if (!href || typeof document === 'undefined') return;
   if (document.querySelector(`link[data-ee-prefetch="${href}"]`)) return;
-
   const link = document.createElement('link');
   link.rel = 'prefetch';
   link.href = href;
@@ -23,23 +22,31 @@ const Desktop1 = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const preconnect = document.createElement('link');
-    preconnect.rel = 'preconnect';
-    preconnect.href = 'https://pages.razorpay.com';
-    preconnect.crossOrigin = 'anonymous';
-    document.head.appendChild(preconnect);
+    const origins = [
+      'https://pages.razorpay.com',
+      'https://checkout.razorpay.com',
+      'https://cdn.razorpay.com',
+    ];
+    const nodes = [];
 
-    const dns = document.createElement('link');
-    dns.rel = 'dns-prefetch';
-    dns.href = 'https://pages.razorpay.com';
-    document.head.appendChild(dns);
+    origins.forEach((href) => {
+      const preconnect = document.createElement('link');
+      preconnect.rel = 'preconnect';
+      preconnect.href = href;
+      preconnect.crossOrigin = 'anonymous';
+      document.head.appendChild(preconnect);
+      nodes.push(preconnect);
+
+      const dns = document.createElement('link');
+      dns.rel = 'dns-prefetch';
+      dns.href = href;
+      document.head.appendChild(dns);
+      nodes.push(dns);
+    });
 
     prefetchUrl(PAYMENT_PAGE_URL);
 
-    return () => {
-      preconnect.remove();
-      dns.remove();
-    };
+    return () => nodes.forEach((n) => n.remove());
   }, []);
 
   useEffect(() => {
@@ -64,9 +71,7 @@ const Desktop1 = () => {
       setMessage('Please select a size first.');
       return;
     }
-
     setMessage('');
-
     try {
       sessionStorage.setItem(
         'ee_merch_pending',
@@ -75,7 +80,6 @@ const Desktop1 = () => {
     } catch {
       // ignore
     }
-
     window.location.assign(getCheckoutUrl());
   };
 

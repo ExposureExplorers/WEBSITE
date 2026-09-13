@@ -1,18 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600&display=swap');
 
 :root {
-  --gap-columns: 53px;
+  --gap-columns: 40px;
   --gap-images: 20px;
   --sticky-top-offset: 40px;
-  --left-col-width: 928px;
-  --right-col-width: 365px;
-  --page-padding: 78px 38px;
+  --page-padding: 48px 40px;
 }
 
 .desktop1 {
   width: 100%;
+  min-height: 100vh;
+  margin: 0;
   display: flex;
   align-items: flex-start;
+  justify-content: flex-start;
   gap: var(--gap-columns);
   padding: var(--page-padding);
   box-sizing: border-box;
@@ -21,14 +22,15 @@
   font-size: 38px;
   color: #a6a6a6;
   font-family: Montserrat, sans-serif;
+  cursor: default;
 }
 
 .leftColumn {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  width: var(--left-col-width);
-  flex-shrink: 0;
 }
 
 .exposureExplorers1 {
@@ -60,11 +62,11 @@
 }
 
 .rightColumn {
+  flex: 0 0 380px;
+  width: 380px;
   position: sticky;
   top: var(--sticky-top-offset);
   align-self: flex-start;
-  width: var(--right-col-width);
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
 }
@@ -109,9 +111,13 @@
 .rectangleParent {
   height: 51px;
   width: 51px;
+  min-width: 51px;
+  min-height: 51px;
   position: relative;
-  cursor: pointer;
+  cursor: default;
   transition: transform 0.15s ease;
+  display: block;
+  flex-shrink: 0;
 }
 
 .rectangleParent:active {
@@ -125,6 +131,7 @@
   border: 0.2px solid #000;
   box-sizing: border-box;
   transition: background-color 0.2s ease;
+  pointer-events: none;
 }
 
 .rectangleParent:hover .groupChild,
@@ -135,13 +142,20 @@
 .xs,
 .xl {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   letter-spacing: 0.04em;
-  line-height: 97%;
+  line-height: 1;
   white-space: nowrap;
   transition: color 0.2s ease;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
 }
 
 .rectangleParent:hover .xs,
@@ -156,24 +170,24 @@
   line-height: 97%;
   text-align: center;
   color: #a6a6a6;
-  cursor: pointer;
-  margin-bottom: 16px;
+  cursor: default;
+  margin-bottom: 28px;
 }
 
 .desktop1Item {
   border-top: 0.2px solid #000;
   width: 100%;
   height: 0.2px;
-  margin-bottom: 24px;
-  margin-top: 16px;
+  margin-top: 0;
+  margin-bottom: 8px;
 }
 
 .lineParent {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: stretch;
+  gap: 0;
   font-size: 16px;
   color: #a6a6a6;
   margin-bottom: 24px;
@@ -183,23 +197,40 @@
   align-self: stretch;
   height: 0.2px;
   border-top: 0.2px solid #000;
+  margin: 0;
+}
+
+.accordionRow {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 .description {
-  align-self: stretch;
-  width: 100%;
+  flex: 1 1 auto;
+  height: 32px;
+  min-height: 32px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  line-height: 97%;
+  justify-content: flex-start;
+  line-height: 1;
   background: none;
   border: none;
   padding: 0;
   margin: 0;
   font: inherit;
+  font-size: 16px;
   color: inherit;
   text-align: left;
-  cursor: pointer;
+  cursor: default;
   user-select: none;
   transition: color 0.2s ease;
 }
@@ -208,15 +239,39 @@
   color: #000;
 }
 
-.description:disabled {
-  cursor: default;
-  opacity: 1;
-  color: #a6a6a6;
+.accordionLabel {
+  display: block;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 
-.accordionIcon {
-  min-width: 1em;
-  text-align: right;
+.accordionToggle {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+  cursor: default;
+  user-select: none;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.accordionToggle:hover {
+  color: #000;
+}
+
+.accordionToggle:active {
+  transform: scale(0.92);
 }
 
 .accordionPanel {
@@ -242,14 +297,14 @@
 
 .accordionOpen .accordionInner {
   opacity: 1;
-  padding: 12px 0 8px;
+  padding: 8px 0 12px;
 }
 
 .buyNowWrapper {
   position: relative;
   width: 100%;
   height: 55px;
-  cursor: pointer;
+  cursor: default;
   transition: transform 0.15s ease;
 }
 
@@ -278,7 +333,6 @@
   letter-spacing: 0.02em;
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .desktop1 {
     flex-direction: column;
@@ -331,6 +385,7 @@
   .rightColumn {
     position: relative;
     top: auto;
+    flex: none;
     width: 100%;
     margin-top: 24px;
     padding: 0 20px;
@@ -347,6 +402,8 @@
   .rectangleParent {
     width: 44px;
     height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .xs,
