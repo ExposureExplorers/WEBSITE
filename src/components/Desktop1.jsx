@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styles from './Desktop1.module.css';
-import { openRazorpayCheckout, preloadRazorpayScript } from '../lib/razorpayCheckout';
+import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
 const MERCH_AMOUNT_PAISE = 79900; // ₹799
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
@@ -11,11 +11,6 @@ const Desktop1 = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(null);
-
-  // Preload Razorpay SDK on mount — kills click-to-modal lag.
-  useEffect(() => {
-    preloadRazorpayScript();
-  }, []);
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
@@ -51,6 +46,7 @@ const Desktop1 = () => {
     ].join('\n');
   };
 
+  // Standalone download — no new tab, no site conflict
   const downloadReceipt = () => {
     if (!orderSuccess?.orderId) return;
 
@@ -71,6 +67,7 @@ const Desktop1 = () => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  // Standalone print — hidden iframe only
   const printReceipt = () => {
     if (!orderSuccess?.orderId) return;
 
@@ -292,59 +289,43 @@ const Desktop1 = () => {
         <div className={styles.desktop1Item} />
 
         <div className={styles.lineParent}>
-          <div className={styles.accordionRow}>
-            <span className={styles.accordionLabel}>DESCRIPTION</span>
-            <button
-              type="button"
-              className={styles.accordionToggle}
-              onClick={() => toggleSection('description')}
-              aria-expanded={openSection === 'description'}
-              aria-label="Toggle description"
-            >
-              <span className={styles.accordionIcon}>
-                {openSection === 'description' ? '−' : '+'}
-              </span>
-            </button>
-          </div>
-
-          <div
-            className={styles.accordionWrapper}
-            data-state={openSection === 'description' ? 'open' : 'closed'}
+          <button
+            type="button"
+            className={styles.description}
+            onClick={() => toggleSection('description')}
+            aria-expanded={openSection === 'description'}
           >
+            <span>DESCRIPTION</span>
+            <span>{openSection === 'description' ? '−' : '+'}</span>
+          </button>
+
+          {openSection === 'description' && (
             <div className={styles.accordionContent}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
               eiusmod tempor incididunt ut labore et dolore magna aliqua. Made
               from 100% premium cotton with an oversized fit. Limited edition by
               Exposure Explorers.
             </div>
-          </div>
+          )}
 
           <div className={styles.frameChild} />
 
-          <div className={styles.accordionRow}>
-            <span className={styles.accordionLabel}>CARE</span>
-            <button
-              type="button"
-              className={styles.accordionToggle}
-              onClick={() => toggleSection('care')}
-              aria-expanded={openSection === 'care'}
-              aria-label="Toggle care instructions"
-            >
-              <span className={styles.accordionIcon}>
-                {openSection === 'care' ? '−' : '+'}
-              </span>
-            </button>
-          </div>
-
-          <div
-            className={styles.accordionWrapper}
-            data-state={openSection === 'care' ? 'open' : 'closed'}
+          <button
+            type="button"
+            className={styles.description}
+            onClick={() => toggleSection('care')}
+            aria-expanded={openSection === 'care'}
           >
+            <span>CARE</span>
+            <span>{openSection === 'care' ? '−' : '+'}</span>
+          </button>
+
+          {openSection === 'care' && (
             <div className={styles.accordionContent}>
               Machine wash cold with similar colors. Do not bleach. Tumble dry
               low or hang dry. Iron on low heat if needed. Wash inside out.
             </div>
-          </div>
+          )}
 
           <div className={styles.frameChild} />
         </div>

@@ -24,10 +24,18 @@ function loadRazorpayScript() {
   });
 }
 
-export function preloadRazorpayScript() {
-  loadRazorpayScript().catch(() => {});
-}
-
+/**
+ * Open Razorpay Standard Checkout
+ *
+ * @param {Object} params
+ * @param {number} params.amountPaise - Amount in paise (min 100)
+ * @param {string} [params.name]
+ * @param {string} [params.description]
+ * @param {string} [params.receipt]
+ * @param {function} [params.onSuccess] - Called with verified payment details
+ * @param {function} [params.onError] - Called with error message string
+ * @param {function} [params.onDismiss] - Called when modal is closed
+ */
 export async function openRazorpayCheckout({
   amountPaise,
   name = 'Exposure Explorers',
@@ -49,6 +57,7 @@ export async function openRazorpayCheckout({
       return;
     }
 
+    // 1) Create order on backend
     const orderRes = await fetch('/api/create-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,8 +90,10 @@ export async function openRazorpayCheckout({
       return;
     }
 
+    // 2) Load Razorpay SDK
     await loadRazorpayScript();
 
+    // 3) Open checkout — amount & order_id MUST come from API
     const options = {
       key,
       amount: orderData.amount,
@@ -112,6 +123,7 @@ export async function openRazorpayCheckout({
           }
 
           if (verifyRes.ok && verifyData.success) {
+            // Pass full details for receipt / success UI
             onSuccess?.({
               ...verifyData,
               razorpay_order_id: response.razorpay_order_id,

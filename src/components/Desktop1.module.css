@@ -110,17 +110,11 @@
   margin-bottom: 20px;
 }
 
-/* ----- Size buttons: hover + active + click animation ----- */
 .rectangleParent {
   height: 51px;
   width: 51px;
   position: relative;
   cursor: pointer;
-  transition: transform 0.12s ease;
-}
-
-.rectangleParent:active {
-  transform: scale(0.92);
 }
 
 .groupChild {
@@ -129,16 +123,6 @@
   background-color: transparent;
   border: 0.2px solid #000;
   box-sizing: border-box;
-  transition: background-color 0.2s ease;
-}
-
-.rectangleParent:hover .groupChild {
-  background-color: #000;
-}
-
-.rectangleParent:hover .xs,
-.rectangleParent:hover .xl {
-  color: #fff;
 }
 
 .rectangleParent.sizeActive .groupChild {
@@ -159,7 +143,6 @@
   letter-spacing: 0.04em;
   line-height: 97%;
   white-space: nowrap;
-  transition: color 0.2s ease;
 }
 
 .sizeGuide {
@@ -195,7 +178,7 @@
   border-top: 0.2px solid #000;
 }
 
-/* Description & Care */
+/* Description & Care — cursor stays default */
 .description {
   align-self: stretch;
   line-height: 97%;
@@ -219,65 +202,12 @@
   pointer-events: none;
 }
 
-/* Plus/minus rotate animation */
-.accordionIcon {
-  display: inline-block;
-  transition: transform 0.25s ease;
-}
-
-.description[aria-expanded='true'] .accordionIcon {
-  transform: rotate(180deg);
-}
-
-/* Expand/collapse animation — element stays mounted, grid-rows collapses to 0 */
-.accordionWrapper {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s ease;
-  overflow: hidden;
-  width: 100%;
-}
-
-.accordionWrapper[data-state='open'] {
-  grid-template-rows: 1fr;
-}
-
 .accordionContent {
   font-size: 14px;
   line-height: 1.5;
   color: #555;
   padding: 12px 0 8px;
   max-width: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* Customer details form */
-.customerForm {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.formInput {
-  height: 44px;
-  padding: 0 14px;
-  border: 0.2px solid #000;
-  font-family: Montserrat, sans-serif;
-  font-size: 14px;
-  color: #000;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease;
-}
-
-.formInput:focus {
-  border-width: 1px;
-}
-
-.formInput::placeholder {
-  color: #a6a6a6;
 }
 
 /* BUY NOW button */
@@ -286,22 +216,12 @@
   width: 100%;
   height: 55px;
   cursor: pointer;
-  transition: transform 0.12s ease;
-}
-
-.buyNowWrapper:active {
-  transform: scale(0.98);
 }
 
 .desktop1Inner {
   position: absolute;
   inset: 0;
   background-color: #000;
-  transition: background-color 0.2s ease;
-}
-
-.buyNowWrapper:hover .desktop1Inner {
-  background-color: #1a1a1a;
 }
 
 .buyNow {
@@ -339,6 +259,7 @@
     margin-bottom: 8px;
   }
 
+  /* Horizontal left → right image scroll */
   .imageGrid {
     display: flex;
     flex-direction: row;
@@ -353,7 +274,7 @@
   }
 
   .imageCol {
-    display: contents;
+    display: contents; /* all 4 images in one horizontal row */
   }
 
   .image1Icon,
@@ -497,18 +418,6 @@
   letter-spacing: 0.04em;
   cursor: pointer;
   border: 1px solid #000;
-  transition: opacity 0.2s ease, transform 0.12s ease;
-}
-
-.primaryBtn:hover,
-.secondaryBtn:hover {
-  opacity: 0.85;
-}
-
-.primaryBtn:active,
-.secondaryBtn:active,
-.ghostBtn:active {
-  transform: scale(0.97);
 }
 
 .primaryBtn {
