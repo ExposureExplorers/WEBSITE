@@ -1,228 +1,40 @@
 import { useState } from 'react';
 import styles from './Desktop1.module.css';
-import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
-const MERCH_AMOUNT_PAISE = 79900; // ₹799
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
+const PAYMENT_LINK = 'https://rzp.io/rzp/gzd1Hfd';
 
 const Desktop1 = () => {
   const [openSection, setOpenSection] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [orderSuccess, setOrderSuccess] = useState(null);
 
   const toggleSection = (section) => {
-    setOpenSection(openSection === section ? null : section);
+    setOpenSection((prev) => (prev === section ? null : section));
   };
 
-  const formatAmount = (paise) =>
-    `₹${(Number(paise) / 100).toLocaleString('en-IN')}`;
-
-  const buildReceiptText = (order) => {
-    const date = new Date(order.paidAt).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-
-    return [
-      'EXPOSURE EXPLORERS',
-      '--------------------------------',
-      'PAYMENT RECEIPT',
-      '--------------------------------',
-      'Status:          PAID',
-      `Date:            ${date}`,
-      '',
-      `Product:         ${order.product}`,
-      `Size:            ${order.size}`,
-      `Amount:          ${formatAmount(order.amount)}`,
-      `Currency:        ${order.currency}`,
-      '',
-      `Order ID:        ${order.orderId}`,
-      `Payment ID:      ${order.paymentId}`,
-      '--------------------------------',
-      'Thank you for your order!',
-      'exposure.explorers@nitgoa.ac.in',
-    ].join('\n');
-  };
-
-  // Standalone download — no new tab, no site conflict
-  const downloadReceipt = () => {
-    if (!orderSuccess?.orderId) return;
-
-    const text = buildReceiptText(orderSuccess);
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `EE_Receipt_${orderSuccess.orderId}.txt`);
-    a.setAttribute('target', '_self');
-    a.style.position = 'fixed';
-    a.style.left = '-9999px';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
-
-  // Standalone print — hidden iframe only
-  const printReceipt = () => {
-    if (!orderSuccess?.orderId) return;
-
-    const text = buildReceiptText(orderSuccess);
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    iframe.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(`<!DOCTYPE html><html><head><title>Receipt</title>
-      <style>
-        body{font-family:monospace;padding:24px;color:#000}
-        pre{white-space:pre-wrap;font-size:13px;line-height:1.5}
-      </style>
-    </head><body><pre>${text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')}</pre></body></html>`);
-    doc.close();
-
-    setTimeout(() => {
-      try {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      } catch (err) {
-        console.error(err);
-      }
-      setTimeout(() => {
-        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-      }, 1000);
-    }, 300);
-  };
-
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (!selectedSize) {
       setMessage('Please select a size first.');
       return;
     }
 
-    setLoading(true);
-    setMessage('');
-    setOrderSuccess(null);
-
-    await openRazorpayCheckout({
-      amountPaise: MERCH_AMOUNT_PAISE,
-      name: 'Exposure Explorers',
-      description: `${PRODUCT_NAME} — Size ${selectedSize}`,
-      receipt: `merch_${selectedSize}_${Date.now()}`,
-      onSuccess: (data) => {
-        setOrderSuccess({
-          product: PRODUCT_NAME,
+    try {
+      sessionStorage.setItem(
+        'ee_merch_pending',
+        JSON.stringify({
           size: selectedSize,
-          amount: data.amount ?? MERCH_AMOUNT_PAISE,
-          currency: data.currency ?? 'INR',
-          orderId: data.razorpay_order_id || data.order_id,
-          paymentId: data.razorpay_payment_id || data.payment_id,
-          paidAt: new Date().toISOString(),
-        });
-        setMessage('');
-        setLoading(false);
-      },
-      onError: (msg) => {
-        setMessage(msg);
-        setLoading(false);
-      },
-      onDismiss: () => {
-        setMessage('Payment cancelled.');
-        setLoading(false);
-      },
-    });
+          product: PRODUCT_NAME,
+        })
+      );
+    } catch {
+      // ignore
+    }
+
+    // Instant checkout via Razorpay Payment Link
+    window.location.href = PAYMENT_LINK;
   };
 
-  // ========== SUCCESS SCREEN ==========
-  if (orderSuccess) {
-    return (
-      <div className={styles.successPage}>
-        <div className={styles.successCard}>
-          <div className={styles.successBadge}>PAID</div>
-          <h1 className={styles.successTitle}>Order confirmed</h1>
-          <p className={styles.successSubtitle}>
-            Thank you for your purchase. Your payment was successful.
-          </p>
-
-          <div className={styles.successDetails}>
-            <div className={styles.successRow}>
-              <span>Product</span>
-              <strong>{orderSuccess.product}</strong>
-            </div>
-            <div className={styles.successRow}>
-              <span>Size</span>
-              <strong>{orderSuccess.size}</strong>
-            </div>
-            <div className={styles.successRow}>
-              <span>Amount</span>
-              <strong>{formatAmount(orderSuccess.amount)}</strong>
-            </div>
-            <div className={styles.successRow}>
-              <span>Order ID</span>
-              <strong className={styles.mono}>{orderSuccess.orderId}</strong>
-            </div>
-            <div className={styles.successRow}>
-              <span>Payment ID</span>
-              <strong className={styles.mono}>{orderSuccess.paymentId}</strong>
-            </div>
-            <div className={styles.successRow}>
-              <span>Date</span>
-              <strong>
-                {new Date(orderSuccess.paidAt).toLocaleString('en-IN', {
-                  dateStyle: 'medium',
-                  timeStyle: 'short',
-                })}
-              </strong>
-            </div>
-          </div>
-
-          <div className={styles.successActions}>
-            <button
-              type="button"
-              className={styles.primaryBtn}
-              onClick={downloadReceipt}
-            >
-              Download receipt
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryBtn}
-              onClick={printReceipt}
-            >
-              Print receipt
-            </button>
-            <button
-              type="button"
-              className={styles.ghostBtn}
-              onClick={() => {
-                setOrderSuccess(null);
-                setSelectedSize(null);
-                setMessage('');
-              }}
-            >
-              Back to product
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ========== PRODUCT PAGE ==========
   return (
     <div className={styles.desktop1}>
       <div className={styles.leftColumn}>
@@ -296,17 +108,23 @@ const Desktop1 = () => {
             aria-expanded={openSection === 'description'}
           >
             <span>DESCRIPTION</span>
-            <span>{openSection === 'description' ? '−' : '+'}</span>
+            <span className={styles.accordionIcon}>
+              {openSection === 'description' ? '−' : '+'}
+            </span>
           </button>
 
-          {openSection === 'description' && (
-            <div className={styles.accordionContent}>
+          <div
+            className={`${styles.accordionPanel} ${
+              openSection === 'description' ? styles.accordionOpen : ''
+            }`}
+          >
+            <div className={styles.accordionInner}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
               eiusmod tempor incididunt ut labore et dolore magna aliqua. Made
               from 100% premium cotton with an oversized fit. Limited edition by
               Exposure Explorers.
             </div>
-          )}
+          </div>
 
           <div className={styles.frameChild} />
 
@@ -317,42 +135,36 @@ const Desktop1 = () => {
             aria-expanded={openSection === 'care'}
           >
             <span>CARE</span>
-            <span>{openSection === 'care' ? '−' : '+'}</span>
+            <span className={styles.accordionIcon}>
+              {openSection === 'care' ? '−' : '+'}
+            </span>
           </button>
 
-          {openSection === 'care' && (
-            <div className={styles.accordionContent}>
+          <div
+            className={`${styles.accordionPanel} ${
+              openSection === 'care' ? styles.accordionOpen : ''
+            }`}
+          >
+            <div className={styles.accordionInner}>
               Machine wash cold with similar colors. Do not bleach. Tumble dry
               low or hang dry. Iron on low heat if needed. Wash inside out.
             </div>
-          )}
+          </div>
 
           <div className={styles.frameChild} />
         </div>
 
         <div
           className={styles.buyNowWrapper}
-          onClick={loading ? undefined : handleBuyNow}
+          onClick={handleBuyNow}
           role="button"
-          style={{
-            opacity: loading ? 0.6 : 1,
-            pointerEvents: loading ? 'none' : 'auto',
-          }}
         >
           <div className={styles.desktop1Inner} />
-          <div className={styles.buyNow}>
-            {loading ? 'PROCESSING...' : 'BUY NOW'}
-          </div>
+          <div className={styles.buyNow}>BUY NOW</div>
         </div>
 
         {message && (
-          <p
-            style={{
-              marginTop: 12,
-              fontSize: 14,
-              color: message.includes('successful') ? '#0a0' : '#c00',
-            }}
-          >
+          <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
             {message}
           </p>
         )}
