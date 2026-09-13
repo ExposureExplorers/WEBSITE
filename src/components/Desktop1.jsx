@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './Desktop1.module.css';
-import { openRazorpayCheckout } from '../lib/razorpayCheckout';
+import { openRazorpayCheckout, preloadRazorpayScript } from '../lib/razorpayCheckout';
 
 const MERCH_AMOUNT_PAISE = 79900; // ₹799
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
@@ -11,6 +11,16 @@ const Desktop1 = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(null);
+
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+
+  // Preload Razorpay SDK as soon as the page mounts —
+  // kills the click-to-modal lag.
+  useEffect(() => {
+    preloadRazorpayScript();
+  }, []);
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
@@ -46,7 +56,6 @@ const Desktop1 = () => {
     ].join('\n');
   };
 
-  // Standalone download — no new tab, no site conflict
   const downloadReceipt = () => {
     if (!orderSuccess?.orderId) return;
 
@@ -67,7 +76,6 @@ const Desktop1 = () => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  // Standalone print — hidden iframe only
   const printReceipt = () => {
     if (!orderSuccess?.orderId) return;
 
@@ -108,9 +116,24 @@ const Desktop1 = () => {
     }, 300);
   };
 
+  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const isValidPhone = (v) => /^[6-9]\d{9}$/.test(v); // Indian 10-digit
+
   const handleBuyNow = async () => {
     if (!selectedSize) {
       setMessage('Please select a size first.');
+      return;
+    }
+    if (!customerName.trim()) {
+      setMessage('Please enter your name.');
+      return;
+    }
+    if (!isValidEmail(customerEmail)) {
+      setMessage('Please enter a valid email.');
+      return;
+    }
+    if (!isValidPhone(customerPhone)) {
+      setMessage('Please enter a valid 10-digit phone number.');
       return;
     }
 
@@ -123,6 +146,9 @@ const Desktop1 = () => {
       name: 'Exposure Explorers',
       description: `${PRODUCT_NAME} — Size ${selectedSize}`,
       receipt: `merch_${selectedSize}_${Date.now()}`,
+      customerName,
+      customerEmail,
+      customerContact: customerPhone,
       onSuccess: (data) => {
         setOrderSuccess({
           product: PRODUCT_NAME,
@@ -296,17 +322,22 @@ const Desktop1 = () => {
             aria-expanded={openSection === 'description'}
           >
             <span>DESCRIPTION</span>
-            <span>{openSection === 'description' ? '−' : '+'}</span>
+            <span className={styles.accordionIcon}>
+              {openSection === 'description' ? '−' : '+'}
+            </span>
           </button>
 
-          {openSection === 'description' && (
+          <div
+            className={styles.accordionWrapper}
+            data-state={openSection === 'description' ? 'open' : 'closed'}
+          >
             <div className={styles.accordionContent}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
               eiusmod tempor incididunt ut labore et dolore magna aliqua. Made
               from 100% premium cotton with an oversized fit. Limited edition by
               Exposure Explorers.
             </div>
-          )}
+          </div>
 
           <div className={styles.frameChild} />
 
@@ -317,17 +348,49 @@ const Desktop1 = () => {
             aria-expanded={openSection === 'care'}
           >
             <span>CARE</span>
-            <span>{openSection === 'care' ? '−' : '+'}</span>
+            <span className={styles.accordionIcon}>
+              {openSection === 'care' ? '−' : '+'}
+            </span>
           </button>
 
-          {openSection === 'care' && (
+          <div
+            className={styles.accordionWrapper}
+            data-state={openSection === 'care' ? 'open' : 'closed'}
+          >
             <div className={styles.accordionContent}>
               Machine wash cold with similar colors. Do not bleach. Tumble dry
               low or hang dry. Iron on low heat if needed. Wash inside out.
             </div>
-          )}
+          </div>
 
           <div className={styles.frameChild} />
+        </div>
+
+        <div className={styles.customerForm}>
+          <input
+            type="text"
+            placeholder="Full name"
+            className={styles.formInput}
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            className={styles.formInput}
+            value={customerEmail}
+            onChange={(e) => setCustomerEmail(e.target.value)}
+          />
+          <input
+            type="tel"
+            placeholder="Phone (10 digits)"
+            className={styles.formInput}
+            value={customerPhone}
+            maxLength={10}
+            onChange={(e) =>
+              setCustomerPhone(e.target.value.replace(/\D/g, ''))
+            }
+          />
         </div>
 
         <div
