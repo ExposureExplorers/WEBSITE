@@ -2,10 +2,12 @@ import { useState } from 'react';
 import styles from './Desktop1.module.css';
 
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
-const PAYMENT_LINK = 'https://rzp.io/rzp/gzd1Hfd';
 
-// Must match the custom field key in Razorpay Dashboard
-const RAZORPAY_SIZE_FIELD_KEY = 'Size';
+// Razorpay Payment Page (long URL — supports field prefill)
+const PAYMENT_PAGE_URL = 'https://pages.razorpay.com/pl_TbcC9hOorxJOU4/view';
+
+// Field key on the Payment Page (lowercase). Change if your dashboard key differs.
+const SIZE_FIELD_KEY = 'size';
 
 const Desktop1 = () => {
   const [openSection, setOpenSection] = useState(null);
@@ -36,9 +38,9 @@ const Desktop1 = () => {
       // ignore
     }
 
-    const url = new URL(PAYMENT_LINK);
-    url.searchParams.set(RAZORPAY_SIZE_FIELD_KEY, selectedSize);
-    url.searchParams.set('size', selectedSize); // fallback
+    // Prefill Size on Payment Page: .../view?size=M
+    const url = new URL(PAYMENT_PAGE_URL);
+    url.searchParams.set(SIZE_FIELD_KEY, selectedSize);
 
     window.location.href = url.toString();
   };
@@ -176,7 +178,7 @@ const Desktop1 = () => {
           <div className={styles.frameChild} />
         </div>
 
-        {/* BUY NOW → Razorpay Payment Link + size */}
+        {/* BUY NOW → Payment Page with size prefilled */}
         <div
           className={styles.buyNowWrapper}
           onClick={handleBuyNow}
