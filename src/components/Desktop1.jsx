@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styles from './Desktop1.module.css';
 
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
 const PAYMENT_PAGE_URL = 'https://pages.razorpay.com/pl_TbcC9hOorxJOU4/view';
+const MOBILE_PAYMENT_PAGE_URL = 'https://pages.razorpay.com/pl_TbvJfxCSs8dfrU/view';
 const SIZE_FIELD_KEY = 'size';
 const PRODUCT_PRICE = '₹ 759';
-const MOBILE_PAYMENT_BUTTON_ID = 'pl_TbvJfxCSs8dfrU';
 
 const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
 
@@ -47,8 +47,6 @@ const Desktop1 = () => {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const paymentFormRef = useRef(null);
-
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
     const update = () => setIsMobile(mq.matches);
@@ -56,24 +54,6 @@ const Desktop1 = () => {
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
   }, []);
-
-  // Mobile-only Razorpay Payment Button
-  useEffect(() => {
-    if (!isMobile || !paymentFormRef.current) return;
-
-    const form = paymentFormRef.current;
-    form.innerHTML = '';
-
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
-    script.setAttribute('data-payment_button_id', MOBILE_PAYMENT_BUTTON_ID);
-    script.async = true;
-    form.appendChild(script);
-
-    return () => {
-      form.innerHTML = '';
-    };
-  }, [isMobile]);
 
   useEffect(() => {
     const preconnect = document.createElement('link');
@@ -88,6 +68,7 @@ const Desktop1 = () => {
     document.head.appendChild(dns);
 
     prefetchUrl(PAYMENT_PAGE_URL);
+    prefetchUrl(MOBILE_PAYMENT_PAGE_URL);
 
     return () => {
       preconnect.remove();
@@ -97,10 +78,11 @@ const Desktop1 = () => {
 
   useEffect(() => {
     if (!selectedSize) return;
-    const url = new URL(PAYMENT_PAGE_URL);
+    const base = isMobile ? MOBILE_PAYMENT_PAGE_URL : PAYMENT_PAGE_URL;
+    const url = new URL(base);
     url.searchParams.set(SIZE_FIELD_KEY, selectedSize);
     prefetchUrl(url.toString());
-  }, [selectedSize]);
+  }, [selectedSize, isMobile]);
 
   useEffect(() => {
     const paymentFlag = searchParams.get('payment');
@@ -143,12 +125,20 @@ const Desktop1 = () => {
   };
 
   const getCheckoutUrl = () => {
-    const url = new URL(PAYMENT_PAGE_URL);
+    const base = isMobile ? MOBILE_PAYMENT_PAGE_URL : PAYMENT_PAGE_URL;
+    const url = new URL(base);
     if (selectedSize) url.searchParams.set(SIZE_FIELD_KEY, selectedSize);
     return url.toString();
   };
 
-  const savePending = () => {
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      setMessage('Please select a size first.');
+      return;
+    }
+
+    setMessage('');
+
     try {
       sessionStorage.setItem(
         'ee_merch_pending',
@@ -161,22 +151,8 @@ const Desktop1 = () => {
     } catch {
       // ignore
     }
-  };
 
-  const handleBuyNow = () => {
-    if (!selectedSize) {
-      setMessage('Please select a size first.');
-      return;
-    }
-
-    setMessage('');
-    savePending();
     window.location.assign(getCheckoutUrl());
-  };
-
-  // Before mobile payment button opens, store size if selected
-  const handleMobilePayClick = () => {
-    if (selectedSize) savePending();
   };
 
   const buildReceiptText = (order) => {
@@ -294,13 +270,11 @@ const Desktop1 = () => {
 
           <div className={styles.imageGrid}>
             <div className={styles.imageCol}>
-              {/* 1st */}
               <img
                 className={styles.image1Icon}
                 src="/assets/merch/product-2.webp"
                 alt="Product front"
               />
-              {/* 2nd on desktop / 3rd on mobile (CSS order) */}
               <img
                 className={styles.image4Icon2}
                 src="/assets/merch/product-1.webp"
@@ -308,13 +282,11 @@ const Desktop1 = () => {
               />
             </div>
             <div className={styles.imageCol}>
-              {/* 3rd on desktop / 2nd on mobile (CSS order) */}
               <img
                 className={styles.image3Icon}
                 src="/assets/merch/product-3.webp"
                 alt="Product lifestyle"
               />
-              {/* 4th */}
               <img
                 className={styles.image4Icon}
                 src="/assets/merch/product-4.webp"
@@ -363,8 +335,6 @@ const Desktop1 = () => {
           </div>
           <div className={styles.desktop1Item} />
 
-          {/* Desktop order: Description/Care then Buy Now
-              Mobile order (CSS): Buy Now first, then Description/Care */}
           <div className={styles.lineParent}>
             <div className={styles.accordionRow}>
               <button
@@ -441,30 +411,18 @@ const Desktop1 = () => {
             <div className={styles.frameChild} />
           </div>
 
-          {/* Desktop custom BUY NOW */}
-          {!isMobile && (
-            <div
-              className={styles.buyNowWrapper}
-              onClick={handleBuyNow}
-              onMouseEnter={() => {
-                if (selectedSize) prefetchUrl(getCheckoutUrl());
-              }}
-              role="button"
-            >
-              <div className={styles.desktop1Inner} />
-              <div className={styles.buyNow}>BUY NOW</div>
-            </div>
-          )}
-
-          {/* Mobile Razorpay Payment Button */}
-          {isMobile && (
-            <div
-              className={styles.mobilePayWrap}
-              onClick={handleMobilePayClick}
-            >
-              <form ref={paymentFormRef} className={styles.razorpayForm} />
-            </div>
-          )}
+          {/* Same button on desktop + mobile */}
+          <div
+            className={styles.buyNowWrapper}
+            onClick={handleBuyNow}
+            onMouseEnter={() => {
+              if (selectedSize) prefetchUrl(getCheckoutUrl());
+            }}
+            role="button"
+          >
+            <div className={styles.desktop1Inner} />
+            <div className={styles.buyNow}>BUY NOW</div>
+          </div>
 
           {message && (
             <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
