@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styles from './Desktop1.module.css';
 
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
 const PAYMENT_PAGE_URL = 'https://pages.razorpay.com/pl_TbcC9hOorxJOU4/view';
 const SIZE_FIELD_KEY = 'size';
-const PRODUCT_PRICE = '₹ 799';
+const PRODUCT_PRICE = '₹ 759';
+const MOBILE_PAYMENT_BUTTON_ID = 'pl_TbvJfxCSs8dfrU';
 
 const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
 
@@ -43,8 +44,37 @@ const Desktop1 = () => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [message, setMessage] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(null);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Prefetch Razorpay
+  const paymentFormRef = useRef(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  // Mobile-only Razorpay Payment Button
+  useEffect(() => {
+    if (!isMobile || !paymentFormRef.current) return;
+
+    const form = paymentFormRef.current;
+    form.innerHTML = '';
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/payment-button.js';
+    script.setAttribute('data-payment_button_id', MOBILE_PAYMENT_BUTTON_ID);
+    script.async = true;
+    form.appendChild(script);
+
+    return () => {
+      form.innerHTML = '';
+    };
+  }, [isMobile]);
+
   useEffect(() => {
     const preconnect = document.createElement('link');
     preconnect.rel = 'preconnect';
@@ -72,7 +102,6 @@ const Desktop1 = () => {
     prefetchUrl(url.toString());
   }, [selectedSize]);
 
-  // After Razorpay redirect → build receipt fully on frontend
   useEffect(() => {
     const paymentFlag = searchParams.get('payment');
     const paymentId =
@@ -93,13 +122,13 @@ const Desktop1 = () => {
       size: pending?.size || '—',
       amount: PRODUCT_PRICE,
       paymentId: paymentId || '—',
-      orderRef: searchParams.get('razorpay_payment_link_id') ||
+      orderRef:
+        searchParams.get('razorpay_payment_link_id') ||
         searchParams.get('razorpay_order_id') ||
         '—',
       paidAt: new Date().toISOString(),
     });
 
-    // Clear URL params (frontend only) so refresh doesn’t re-trigger forever
     setSearchParams({}, { replace: true });
 
     try {
@@ -119,14 +148,7 @@ const Desktop1 = () => {
     return url.toString();
   };
 
-  const handleBuyNow = () => {
-    if (!selectedSize) {
-      setMessage('Please select a size first.');
-      return;
-    }
-
-    setMessage('');
-
+  const savePending = () => {
     try {
       sessionStorage.setItem(
         'ee_merch_pending',
@@ -139,8 +161,22 @@ const Desktop1 = () => {
     } catch {
       // ignore
     }
+  };
 
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      setMessage('Please select a size first.');
+      return;
+    }
+
+    setMessage('');
+    savePending();
     window.location.assign(getCheckoutUrl());
+  };
+
+  // Before mobile payment button opens, store size if selected
+  const handleMobilePayClick = () => {
+    if (selectedSize) savePending();
   };
 
   const buildReceiptText = (order) => {
@@ -168,7 +204,6 @@ const Desktop1 = () => {
     ].join('\n');
   };
 
-  // Isolated download — no site navigation / no extra routes
   const downloadReceipt = () => {
     if (!orderSuccess) return;
 
@@ -188,7 +223,6 @@ const Desktop1 = () => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  // ========== SUCCESS / RECEIPT (frontend only) ==========
   if (orderSuccess) {
     return (
       <div className={styles.successPage}>
@@ -248,170 +282,277 @@ const Desktop1 = () => {
     );
   }
 
-  // ========== PRODUCT PAGE ==========
   return (
-    <div className={styles.desktop1}>
-      <div className={styles.leftColumn}>
-        <img
-          className={styles.exposureExplorers1}
-          src="/assets/icons/exposure-explorers.svg"
-          alt="Exposure Explorers Logo"
-        />
+    <>
+      <div className={styles.desktop1}>
+        <div className={styles.leftColumn}>
+          <img
+            className={styles.exposureExplorers1}
+            src="/assets/icons/exposure-explorers.svg"
+            alt="Exposure Explorers Logo"
+          />
 
-        <div className={styles.imageGrid}>
-          <div className={styles.imageCol}>
-            <img
-              className={styles.image1Icon}
-              src="/assets/merch/product-2.webp"
-              alt="Product front"
-            />
-            <img
-              className={styles.image4Icon2}
-              src="/assets/merch/product-1.webp"
-              alt="Product back"
-            />
-          </div>
-          <div className={styles.imageCol}>
-            <img
-              className={styles.image3Icon}
-              src="/assets/merch/product-3.webp"
-              alt="Product lifestyle"
-            />
-            <img
-              className={styles.image4Icon}
-              src="/assets/merch/product-4.webp"
-              alt="Product detail"
-            />
+          <div className={styles.imageGrid}>
+            <div className={styles.imageCol}>
+              {/* 1st */}
+              <img
+                className={styles.image1Icon}
+                src="/assets/merch/product-2.webp"
+                alt="Product front"
+              />
+              {/* 2nd on desktop / 3rd on mobile (CSS order) */}
+              <img
+                className={styles.image4Icon2}
+                src="/assets/merch/product-1.webp"
+                alt="Product back"
+              />
+            </div>
+            <div className={styles.imageCol}>
+              {/* 3rd on desktop / 2nd on mobile (CSS order) */}
+              <img
+                className={styles.image3Icon}
+                src="/assets/merch/product-3.webp"
+                alt="Product lifestyle"
+              />
+              {/* 4th */}
+              <img
+                className={styles.image4Icon}
+                src="/assets/merch/product-4.webp"
+                alt="Product detail"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className={styles.rightColumn}>
-        <div className={styles.exposureExplorersOversizedContainer}>
-          <span className={styles.exposureExplorersOversized}>
-            Exposure Explorers Oversized T-Shirt
-          </span>
-        </div>
+        <div className={styles.rightColumn}>
+          <div className={styles.exposureExplorersOversizedContainer}>
+            <span className={styles.exposureExplorersOversized}>
+              Exposure Explorers Oversized T-Shirt
+            </span>
+          </div>
 
-        <div className={styles.div}>{PRODUCT_PRICE}</div>
-        <div className={styles.desktop1Child} />
+          <div className={styles.div}>{PRODUCT_PRICE}</div>
+          <div className={styles.desktop1Child} />
 
-        <div className={styles.groupParent}>
-          {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
+          <div className={styles.groupParent}>
+            {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
+              <div
+                key={size}
+                className={`${styles.rectangleParent} ${
+                  selectedSize === size ? styles.sizeActive : ''
+                }`}
+                onClick={() => {
+                  setSelectedSize(size);
+                  setMessage('');
+                }}
+              >
+                <div className={styles.groupChild} />
+                <div className={size === 'XL' ? styles.xl : styles.xs}>
+                  {size}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            className={styles.sizeGuide}
+            onClick={() => setShowSizeGuide(true)}
+            role="button"
+          >
+            SIZE GUIDE
+          </div>
+          <div className={styles.desktop1Item} />
+
+          {/* Desktop order: Description/Care then Buy Now
+              Mobile order (CSS): Buy Now first, then Description/Care */}
+          <div className={styles.lineParent}>
+            <div className={styles.accordionRow}>
+              <button
+                type="button"
+                className={styles.description}
+                onClick={() => toggleSection('description')}
+                aria-expanded={openSection === 'description'}
+              >
+                <span className={styles.accordionLabel}>DESCRIPTION</span>
+              </button>
+              <button
+                type="button"
+                className={styles.accordionToggle}
+                onClick={() => toggleSection('description')}
+                aria-label={
+                  openSection === 'description'
+                    ? 'Collapse description'
+                    : 'Expand description'
+                }
+              >
+                {openSection === 'description' ? '−' : '+'}
+              </button>
+            </div>
+
             <div
-              key={size}
-              className={`${styles.rectangleParent} ${
-                selectedSize === size ? styles.sizeActive : ''
+              className={`${styles.accordionPanel} ${
+                openSection === 'description' ? styles.accordionOpen : ''
               }`}
-              onClick={() => {
-                setSelectedSize(size);
-                setMessage('');
+            >
+              <div className={styles.accordionInner}>
+                {DESCRIPTION_TEXT.split('\n').map((line, i) => (
+                  <span key={i}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.frameChild} />
+
+            <div className={styles.accordionRow}>
+              <button
+                type="button"
+                className={styles.description}
+                onClick={() => toggleSection('care')}
+                aria-expanded={openSection === 'care'}
+              >
+                <span className={styles.accordionLabel}>CARE</span>
+              </button>
+              <button
+                type="button"
+                className={styles.accordionToggle}
+                onClick={() => toggleSection('care')}
+                aria-label={
+                  openSection === 'care' ? 'Collapse care' : 'Expand care'
+                }
+              >
+                {openSection === 'care' ? '−' : '+'}
+              </button>
+            </div>
+
+            <div
+              className={`${styles.accordionPanel} ${
+                openSection === 'care' ? styles.accordionOpen : ''
+              }`}
+            >
+              <div className={styles.accordionInner}>
+                Machine wash cold with similar colors. Do not bleach. Tumble dry
+                low or hang dry. Iron on low heat if needed. Wash inside out.
+              </div>
+            </div>
+
+            <div className={styles.frameChild} />
+          </div>
+
+          {/* Desktop custom BUY NOW */}
+          {!isMobile && (
+            <div
+              className={styles.buyNowWrapper}
+              onClick={handleBuyNow}
+              onMouseEnter={() => {
+                if (selectedSize) prefetchUrl(getCheckoutUrl());
               }}
+              role="button"
             >
-              <div className={styles.groupChild} />
-              <div className={size === 'XL' ? styles.xl : styles.xs}>{size}</div>
+              <div className={styles.desktop1Inner} />
+              <div className={styles.buyNow}>BUY NOW</div>
             </div>
-          ))}
-        </div>
+          )}
 
-        <div className={styles.sizeGuide}>SIZE GUIDE</div>
-        <div className={styles.desktop1Item} />
-
-        <div className={styles.lineParent}>
-          <div className={styles.accordionRow}>
-            <button
-              type="button"
-              className={styles.description}
-              onClick={() => toggleSection('description')}
-              aria-expanded={openSection === 'description'}
+          {/* Mobile Razorpay Payment Button */}
+          {isMobile && (
+            <div
+              className={styles.mobilePayWrap}
+              onClick={handleMobilePayClick}
             >
-              <span className={styles.accordionLabel}>DESCRIPTION</span>
-            </button>
-            <button
-              type="button"
-              className={styles.accordionToggle}
-              onClick={() => toggleSection('description')}
-              aria-label={
-                openSection === 'description'
-                  ? 'Collapse description'
-                  : 'Expand description'
-              }
-            >
-              {openSection === 'description' ? '−' : '+'}
-            </button>
-          </div>
-
-          <div
-            className={`${styles.accordionPanel} ${
-              openSection === 'description' ? styles.accordionOpen : ''
-            }`}
-          >
-            <div className={styles.accordionInner}>
-              {DESCRIPTION_TEXT.split('\n').map((line, i) => (
-                <span key={i}>
-                  {line}
-                  <br />
-                </span>
-              ))}
+              <form ref={paymentFormRef} className={styles.razorpayForm} />
             </div>
-          </div>
+          )}
 
-          <div className={styles.frameChild} />
-
-          <div className={styles.accordionRow}>
-            <button
-              type="button"
-              className={styles.description}
-              onClick={() => toggleSection('care')}
-              aria-expanded={openSection === 'care'}
-            >
-              <span className={styles.accordionLabel}>CARE</span>
-            </button>
-            <button
-              type="button"
-              className={styles.accordionToggle}
-              onClick={() => toggleSection('care')}
-              aria-label={
-                openSection === 'care' ? 'Collapse care' : 'Expand care'
-              }
-            >
-              {openSection === 'care' ? '−' : '+'}
-            </button>
-          </div>
-
-          <div
-            className={`${styles.accordionPanel} ${
-              openSection === 'care' ? styles.accordionOpen : ''
-            }`}
-          >
-            <div className={styles.accordionInner}>
-              Machine wash cold with similar colors. Do not bleach. Tumble dry
-              low or hang dry. Iron on low heat if needed. Wash inside out.
-            </div>
-          </div>
-
-          <div className={styles.frameChild} />
+          {message && (
+            <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
+              {message}
+            </p>
+          )}
         </div>
-
-        <div
-          className={styles.buyNowWrapper}
-          onClick={handleBuyNow}
-          onMouseEnter={() => {
-            if (selectedSize) prefetchUrl(getCheckoutUrl());
-          }}
-          role="button"
-        >
-          <div className={styles.desktop1Inner} />
-          <div className={styles.buyNow}>BUY NOW</div>
-        </div>
-
-        {message && (
-          <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
-            {message}
-          </p>
-        )}
       </div>
-    </div>
+
+      {showSizeGuide && (
+        <div
+          className={styles.sizeGuideOverlay}
+          onClick={() => setShowSizeGuide(false)}
+        >
+          <aside
+            className={styles.sizeGuidePanel}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.sizeGuideClose}
+              onClick={() => setShowSizeGuide(false)}
+              aria-label="Close size guide"
+            >
+              ×
+            </button>
+
+            <h2 className={styles.sizeGuideTitle}>
+              SIZE CHART [ OVERSIZED FIT ]
+            </h2>
+            <p className={styles.sizeGuideSubtitle}>
+              (All measurements in inches)
+            </p>
+
+            <div className={styles.sizeTableWrap}>
+              <table className={styles.sizeTable}>
+                <thead>
+                  <tr>
+                    <th>SIZE</th>
+                    <th>CHEST</th>
+                    <th>LENGTH</th>
+                    <th>SHOULDER</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>S</td>
+                    <td>42</td>
+                    <td>27.5&quot;</td>
+                    <td>21.5</td>
+                  </tr>
+                  <tr>
+                    <td>M</td>
+                    <td>44</td>
+                    <td>28</td>
+                    <td>22.5</td>
+                  </tr>
+                  <tr>
+                    <td>L</td>
+                    <td>46</td>
+                    <td>28.5&quot;</td>
+                    <td>23.5</td>
+                  </tr>
+                  <tr>
+                    <td>XL</td>
+                    <td>48</td>
+                    <td>29</td>
+                    <td>24.5</td>
+                  </tr>
+                  <tr>
+                    <td>XXL</td>
+                    <td>50</td>
+                    <td>29.5&quot;</td>
+                    <td>25.5</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <img
+              className={styles.sizeBodyImg}
+              src="/assets/merch/size-guide-body.png"
+              alt="Measurement guide: Shoulder, Chest, Waist, Hip"
+            />
+          </aside>
+        </div>
+      )}
+    </>
   );
 };
 
