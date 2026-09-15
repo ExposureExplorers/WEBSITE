@@ -598,11 +598,11 @@
 
   /* Mobile order: 1st, 3rd, 2nd, 4th */
   .image1Icon {
-    order: 1;
+    order: 2;
   }
 
   .image3Icon {
-    order: 2;
+    order: 1;
   }
 
   .image4Icon2 {
@@ -695,6 +695,120 @@
   }
 
   .successTitle {
+    font-size: 22px;
+  }
+}
+/* Desktop: line after CARE (above Buy Now) */
+.lineBeforeBuy {
+  display: block;
+}
+
+/* Desktop: hide line under Buy Now */
+.lineAfterBuy {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Mobile: no line above Buy Now */
+  .lineBeforeBuy {
+    display: none;
+  }
+
+  /* Mobile: line below Buy Now */
+  .lineAfterBuy {
+    display: block;
+    margin-top: 16px;
+    width: 100%;
+  }
+}
+
+.buyNowWrapper {
+  position: relative;
+  width: 100%;
+  height: 55px;
+  cursor: inherit;
+  overflow: hidden;
+  transition: transform 0.15s ease;
+}
+
+.buyNowWrapper:active {
+  transform: scale(0.98);
+}
+
+.desktop1Inner {
+  position: absolute;
+  inset: 0;
+  background-color: #000;
+  pointer-events: none;
+}
+
+.buyNow {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 600;
+  color: #fff;
+  pointer-events: none;
+  letter-spacing: 0.02em;
+  z-index: 1;
+}
+
+/* Invisible Razorpay layer — fills your button */
+.razorpayHitArea {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.razorpayHitArea :global(button),
+.razorpayHitArea button,
+.razorpayHitArea :global(div),
+.razorpayHitArea div {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  opacity: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: inherit !important;
+}
+
+.lineBeforeBuy {
+  display: block;
+}
+
+.lineAfterBuy {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .lineBeforeBuy {
+    display: none;
+  }
+
+  .lineAfterBuy {
+    display: block;
+    margin-top: 16px;
+    width: 100%;
+  }
+
+  .buyNowWrapper {
+    height: 52px;
+  }
+
+  .buyNow {
     font-size: 22px;
   }
 }
