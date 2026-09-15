@@ -386,8 +386,8 @@
 
 .sizeGuideClose {
   position: absolute;
-  top: 16px;
-  right: 8px;
+  top: 8px;
+  right: 0px;
   width: 36px;
   height: 36px;
   border: none;
