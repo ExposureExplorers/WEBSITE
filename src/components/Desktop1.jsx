@@ -30,7 +30,6 @@ const Desktop1 = () => {
     phone: '',
   });
 
-  // Optional: still support ?payment=success if you ever redirect
   useEffect(() => {
     const paymentFlag = searchParams.get('payment');
     const paymentId =
@@ -59,7 +58,11 @@ const Desktop1 = () => {
       setMessage('Please select a size first.');
       return;
     }
-    if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
+    if (
+      !customer.name.trim() ||
+      !customer.email.trim() ||
+      !customer.phone.trim()
+    ) {
       setMessage('Please enter name, email and phone.');
       return;
     }
@@ -132,23 +135,35 @@ const Desktop1 = () => {
     ].join('\n');
   };
 
-  const downloadReceipt = () => {
+  const downloadReceipt = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!orderSuccess) return;
 
     const text = buildReceiptText(orderSuccess);
+    const filename = `EE_Receipt_${orderSuccess.paymentId || Date.now()}.txt`;
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
 
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveOrOpenBlob(blob, filename);
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `EE_Receipt_${orderSuccess.paymentId || Date.now()}.txt`;
-    a.style.position = 'fixed';
-    a.style.left = '-9999px';
+    a.download = filename;
+    a.rel = 'noopener';
+    a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
 
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setTimeout(() => {
+      if (a.parentNode) document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1000);
   };
 
   if (orderSuccess) {
@@ -305,7 +320,6 @@ const Desktop1 = () => {
           </div>
           <div className={styles.desktop1Item} />
 
-          {/* Order summary */}
           <div className={styles.orderSummary}>
             <div className={styles.summaryProduct}>
               <img
@@ -336,7 +350,6 @@ const Desktop1 = () => {
             </div>
           </div>
 
-          {/* Name / email / phone → Razorpay prefill + dashboard */}
           <div className={styles.customerForm}>
             <input
               className={styles.field}
