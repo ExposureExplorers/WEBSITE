@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styles from './Desktop1.module.css';
+import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
-const PAYMENT_PAGE_URL = 'https://pages.razorpay.com/pl_TbcC9hOorxJOU4/view';
-const MOBILE_PAYMENT_PAGE_URL = 'https://pages.razorpay.com/pl_TbvJfxCSs8dfrU/view';
-const SIZE_FIELD_KEY = 'size';
 const PRODUCT_PRICE = '₹ 759';
+const MERCH_AMOUNT_PAISE = 75900; // ₹759
 
 const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
 
@@ -17,27 +16,6 @@ const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minim
 • Relaxed Fit
 • Signature Front & Back Graphics`;
 
-function prefetchUrl(href) {
-  if (!href || typeof document === 'undefined') return;
-  if (document.querySelector(`link[data-ee-prefetch="${href}"]`)) return;
-
-  const link = document.createElement('link');
-  link.rel = 'prefetch';
-  link.href = href;
-  link.as = 'document';
-  link.setAttribute('data-ee-prefetch', href);
-  document.head.appendChild(link);
-}
-
-function readPendingOrder() {
-  try {
-    const raw = sessionStorage.getItem('ee_merch_pending');
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 const Desktop1 = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [openSection, setOpenSection] = useState(null);
@@ -45,117 +23,84 @@ const Desktop1 = () => {
   const [message, setMessage] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [customer, setCustomer] = useState({
+    name: '',
+    email: '',
+    phone: '',
+  });
 
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
-
-  useEffect(() => {
-    const preconnect = document.createElement('link');
-    preconnect.rel = 'preconnect';
-    preconnect.href = 'https://pages.razorpay.com';
-    preconnect.crossOrigin = 'anonymous';
-    document.head.appendChild(preconnect);
-
-    const dns = document.createElement('link');
-    dns.rel = 'dns-prefetch';
-    dns.href = 'https://pages.razorpay.com';
-    document.head.appendChild(dns);
-
-    prefetchUrl(PAYMENT_PAGE_URL);
-    prefetchUrl(MOBILE_PAYMENT_PAGE_URL);
-
-    return () => {
-      preconnect.remove();
-      dns.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!selectedSize) return;
-    const base = isMobile ? MOBILE_PAYMENT_PAGE_URL : PAYMENT_PAGE_URL;
-    const url = new URL(base);
-    url.searchParams.set(SIZE_FIELD_KEY, selectedSize);
-    prefetchUrl(url.toString());
-  }, [selectedSize, isMobile]);
-
+  // Optional: still support ?payment=success if you ever redirect
   useEffect(() => {
     const paymentFlag = searchParams.get('payment');
     const paymentId =
       searchParams.get('razorpay_payment_id') ||
       searchParams.get('payment_id');
 
-    const success =
-      paymentFlag === 'success' ||
-      paymentFlag === 'paid' ||
-      Boolean(paymentId);
-
-    if (!success) return;
-
-    const pending = readPendingOrder();
-
-    setOrderSuccess({
-      product: pending?.product || PRODUCT_NAME,
-      size: pending?.size || '—',
-      amount: PRODUCT_PRICE,
-      paymentId: paymentId || '—',
-      orderRef:
-        searchParams.get('razorpay_payment_link_id') ||
-        searchParams.get('razorpay_order_id') ||
-        '—',
-      paidAt: new Date().toISOString(),
-    });
-
-    setSearchParams({}, { replace: true });
-
-    try {
-      sessionStorage.removeItem('ee_merch_pending');
-    } catch {
-      // ignore
+    if (paymentFlag === 'success' || paymentFlag === 'paid' || paymentId) {
+      setOrderSuccess({
+        product: PRODUCT_NAME,
+        size: selectedSize || '—',
+        amount: PRODUCT_PRICE,
+        paymentId: paymentId || '—',
+        orderRef: '—',
+        paidAt: new Date().toISOString(),
+      });
+      setSearchParams({}, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, selectedSize]);
 
   const toggleSection = (section) => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
-  const getCheckoutUrl = () => {
-    const base = isMobile ? MOBILE_PAYMENT_PAGE_URL : PAYMENT_PAGE_URL;
-    const url = new URL(base);
-    if (selectedSize) url.searchParams.set(SIZE_FIELD_KEY, selectedSize);
-    return url.toString();
-  };
-
-  const savePending = () => {
-    if (!selectedSize) return;
-    try {
-      sessionStorage.setItem(
-        'ee_merch_pending',
-        JSON.stringify({
-          size: selectedSize,
-          product: PRODUCT_NAME,
-          amount: PRODUCT_PRICE,
-        })
-      );
-    } catch {
-      // ignore
-    }
-  };
-
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (!selectedSize) {
       setMessage('Please select a size first.');
       return;
     }
+    if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
+      setMessage('Please enter name, email and phone.');
+      return;
+    }
 
+    setLoading(true);
     setMessage('');
-    savePending();
-    window.location.assign(getCheckoutUrl());
+
+    await openRazorpayCheckout({
+      amountPaise: MERCH_AMOUNT_PAISE,
+      name: customer.name.trim(),
+      email: customer.email.trim(),
+      contact: customer.phone.trim(),
+      description: `Oversized T-Shirt — Size ${selectedSize}`,
+      receipt: `merch_${selectedSize}_${Date.now()}`,
+      notes: {
+        size: selectedSize,
+        product: PRODUCT_NAME,
+      },
+      onSuccess: (response) => {
+        setOrderSuccess({
+          product: PRODUCT_NAME,
+          size: selectedSize,
+          amount: PRODUCT_PRICE,
+          paymentId: response.razorpay_payment_id || '—',
+          orderRef: response.razorpay_order_id || '—',
+          paidAt: new Date().toISOString(),
+          customerName: customer.name.trim(),
+          customerEmail: customer.email.trim(),
+          customerPhone: customer.phone.trim(),
+        });
+        setLoading(false);
+      },
+      onError: (msg) => {
+        setMessage(msg || 'Payment failed.');
+        setLoading(false);
+      },
+      onDismiss: () => {
+        setMessage('Payment cancelled.');
+        setLoading(false);
+      },
+    });
   };
 
   const buildReceiptText = (order) => {
@@ -176,8 +121,12 @@ const Desktop1 = () => {
       `Size:            ${order.size}`,
       `Amount:          ${order.amount}`,
       '',
+      `Name:            ${order.customerName || '—'}`,
+      `Email:           ${order.customerEmail || '—'}`,
+      `Phone:           ${order.customerPhone || '—'}`,
+      '',
       `Payment ID:      ${order.paymentId}`,
-      `Reference:       ${order.orderRef}`,
+      `Order ID:        ${order.orderRef}`,
       '--------------------------------',
       'Thank you for your order!',
     ].join('\n');
@@ -225,6 +174,24 @@ const Desktop1 = () => {
               <span>Amount</span>
               <strong>{orderSuccess.amount}</strong>
             </div>
+            {orderSuccess.customerName && (
+              <div className={styles.successRow}>
+                <span>Name</span>
+                <strong>{orderSuccess.customerName}</strong>
+              </div>
+            )}
+            {orderSuccess.customerEmail && (
+              <div className={styles.successRow}>
+                <span>Email</span>
+                <strong>{orderSuccess.customerEmail}</strong>
+              </div>
+            )}
+            {orderSuccess.customerPhone && (
+              <div className={styles.successRow}>
+                <span>Phone</span>
+                <strong>{orderSuccess.customerPhone}</strong>
+              </div>
+            )}
             <div className={styles.successRow}>
               <span>Payment ID</span>
               <strong className={styles.mono}>{orderSuccess.paymentId}</strong>
@@ -338,6 +305,70 @@ const Desktop1 = () => {
           </div>
           <div className={styles.desktop1Item} />
 
+          {/* Order summary */}
+          <div className={styles.orderSummary}>
+            <div className={styles.summaryProduct}>
+              <img
+                src="/assets/merch/product-2.webp"
+                alt=""
+                className={styles.summaryThumb}
+              />
+              <div className={styles.summaryInfo}>
+                <div className={styles.summaryTitle}>{PRODUCT_NAME}</div>
+                <div className={styles.summaryMeta}>
+                  {selectedSize ? `Size ${selectedSize}` : 'Select a size'}
+                </div>
+              </div>
+              <div className={styles.summaryPrice}>{PRODUCT_PRICE}</div>
+            </div>
+
+            <div className={styles.summaryRow}>
+              <span>Subtotal</span>
+              <span>{PRODUCT_PRICE}</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Shipping</span>
+              <span>FREE</span>
+            </div>
+            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+              <span>Total</span>
+              <span>INR 759.00</span>
+            </div>
+          </div>
+
+          {/* Name / email / phone → Razorpay prefill + dashboard */}
+          <div className={styles.customerForm}>
+            <input
+              className={styles.field}
+              placeholder="Full name"
+              value={customer.name}
+              onChange={(e) =>
+                setCustomer({ ...customer, name: e.target.value })
+              }
+              autoComplete="name"
+            />
+            <input
+              className={styles.field}
+              type="email"
+              placeholder="Email"
+              value={customer.email}
+              onChange={(e) =>
+                setCustomer({ ...customer, email: e.target.value })
+              }
+              autoComplete="email"
+            />
+            <input
+              className={styles.field}
+              type="tel"
+              placeholder="Phone"
+              value={customer.phone}
+              onChange={(e) =>
+                setCustomer({ ...customer, phone: e.target.value })
+              }
+              autoComplete="tel"
+            />
+          </div>
+
           <div className={styles.lineParent}>
             <div className={styles.accordionRow}>
               <button
@@ -414,20 +445,19 @@ const Desktop1 = () => {
             <div className={`${styles.frameChild} ${styles.lineBeforeBuy}`} />
           </div>
 
-          {/* Same custom button desktop + mobile */}
           <div
             className={styles.buyNowWrapper}
-            onClick={handleBuyNow}
-            onMouseEnter={() => {
-              if (selectedSize) {
-                savePending();
-                prefetchUrl(getCheckoutUrl());
-              }
-            }}
+            onClick={loading ? undefined : handleBuyNow}
             role="button"
+            style={{
+              opacity: loading ? 0.6 : 1,
+              pointerEvents: loading ? 'none' : 'auto',
+            }}
           >
             <div className={styles.desktop1Inner} />
-            <div className={styles.buyNow}>BUY NOW</div>
+            <div className={styles.buyNow}>
+              {loading ? 'PROCESSING...' : 'BUY NOW'}
+            </div>
           </div>
 
           <div className={`${styles.frameChild} ${styles.lineAfterBuy}`} />
