@@ -274,46 +274,6 @@ const Desktop1 = () => {
 
           <h1 className={styles.checkoutHeading}>Checkout</h1>
 
-          {/* Mobile only: Description + Care on top */}
-          <div className={styles.checkoutAccordionMobile}>
-            <div className={styles.lineParent}>
-              <div className={styles.accordionRow}>
-                <button
-                  type="button"
-                  className={styles.description}
-                  onClick={() => toggleSection('description')}
-                  aria-expanded={openSection === 'description'}
-                >
-                  <span className={styles.accordionLabel}>DESCRIPTION</span>
-                </button>
-                <button
-                  type="button"
-                  className={styles.accordionToggle}
-                  onClick={() => toggleSection('description')}
-                >
-                  {openSection === 'description' ? '−' : '+'}
-                </button>
-              </div>
-              <div
-                className={`${styles.accordionPanel} ${
-                  openSection === 'description' ? styles.accordionOpen : ''
-                }`}
-              >
-                <div className={styles.accordionInner}>
-                  {DESCRIPTION_TEXT.split('\n').map((line, i) => (
-                    <span key={i}>
-                      {line}
-                      <br />
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.frameChild} />
-
-           
-            </div>
-          </div>
 
           {/* Order summary (text only — no photo on mobile) */}
           <div className={styles.orderSummary}>
