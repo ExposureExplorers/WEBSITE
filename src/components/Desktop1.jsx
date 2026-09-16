@@ -430,7 +430,7 @@ const Desktop1 = () => {
         <div className={styles.checkoutRight}>
           <img
             className={styles.checkoutHero}
-            src="/assets/merch/product-2.webp"
+            src="/assets/merch/product-4.webp"
             alt={PRODUCT_NAME}
           />
           <div className={styles.checkoutRightMeta}>
