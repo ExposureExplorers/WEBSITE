@@ -5,7 +5,7 @@ import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
 const PRODUCT_PRICE = '₹ 759';
-const MERCH_AMOUNT_PAISE = 75900; // ₹759
+const MERCH_AMOUNT_PAISE = 75900;
 
 const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
 
@@ -24,6 +24,7 @@ const Desktop1 = () => {
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const [customer, setCustomer] = useState({
     name: '',
     email: '',
@@ -53,7 +54,17 @@ const Desktop1 = () => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
-  const handleBuyNow = async () => {
+  const goToCheckout = () => {
+    if (!selectedSize) {
+      setMessage('Please select a size first.');
+      return;
+    }
+    setMessage('');
+    setShowCheckout(true);
+    window.scrollTo(0, 0);
+  };
+
+  const handlePay = async () => {
     if (!selectedSize) {
       setMessage('Please select a size first.');
       return;
@@ -166,6 +177,7 @@ const Desktop1 = () => {
     }, 1000);
   };
 
+  /* ========== SUCCESS ========== */
   if (orderSuccess) {
     return (
       <div className={styles.successPage}>
@@ -233,7 +245,10 @@ const Desktop1 = () => {
             <button
               type="button"
               className={styles.ghostBtn}
-              onClick={() => setOrderSuccess(null)}
+              onClick={() => {
+                setOrderSuccess(null);
+                setShowCheckout(false);
+              }}
             >
               Back to product
             </button>
@@ -243,6 +258,192 @@ const Desktop1 = () => {
     );
   }
 
+  /* ========== CHECKOUT PAGE ========== */
+  if (showCheckout) {
+    return (
+      <div className={styles.checkoutPage}>
+        {/* LEFT: details form */}
+        <div className={styles.checkoutLeft}>
+          <button
+            type="button"
+            className={styles.checkoutBack}
+            onClick={() => setShowCheckout(false)}
+          >
+            ← Back
+          </button>
+
+          <h1 className={styles.checkoutHeading}>Checkout</h1>
+
+          {/* Mobile only: Description + Care on top */}
+          <div className={styles.checkoutAccordionMobile}>
+            <div className={styles.lineParent}>
+              <div className={styles.accordionRow}>
+                <button
+                  type="button"
+                  className={styles.description}
+                  onClick={() => toggleSection('description')}
+                  aria-expanded={openSection === 'description'}
+                >
+                  <span className={styles.accordionLabel}>DESCRIPTION</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.accordionToggle}
+                  onClick={() => toggleSection('description')}
+                >
+                  {openSection === 'description' ? '−' : '+'}
+                </button>
+              </div>
+              <div
+                className={`${styles.accordionPanel} ${
+                  openSection === 'description' ? styles.accordionOpen : ''
+                }`}
+              >
+                <div className={styles.accordionInner}>
+                  {DESCRIPTION_TEXT.split('\n').map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      <br />
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.frameChild} />
+
+              <div className={styles.accordionRow}>
+                <button
+                  type="button"
+                  className={styles.description}
+                  onClick={() => toggleSection('care')}
+                  aria-expanded={openSection === 'care'}
+                >
+                  <span className={styles.accordionLabel}>CARE</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.accordionToggle}
+                  onClick={() => toggleSection('care')}
+                >
+                  {openSection === 'care' ? '−' : '+'}
+                </button>
+              </div>
+              <div
+                className={`${styles.accordionPanel} ${
+                  openSection === 'care' ? styles.accordionOpen : ''
+                }`}
+              >
+                <div className={styles.accordionInner}>
+                  Machine wash cold with similar colors. Do not bleach. Tumble
+                  dry low or hang dry. Iron on low heat if needed. Wash inside
+                  out.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Order summary (text only — no photo on mobile) */}
+          <div className={styles.orderSummary}>
+            <div className={styles.summaryProduct}>
+              {/* Desktop only thumb */}
+              <img
+                src="/assets/merch/product-2.webp"
+                alt=""
+                className={styles.summaryThumb}
+              />
+              <div className={styles.summaryInfo}>
+                <div className={styles.summaryTitle}>{PRODUCT_NAME}</div>
+                <div className={styles.summaryMeta}>Size {selectedSize}</div>
+              </div>
+              <div className={styles.summaryPrice}>{PRODUCT_PRICE}</div>
+            </div>
+
+            <div className={styles.summaryRow}>
+              <span>Subtotal</span>
+              <span>{PRODUCT_PRICE}</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Shipping</span>
+              <span>FREE</span>
+            </div>
+            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+              <span>Total</span>
+              <span>INR 759.00</span>
+            </div>
+          </div>
+
+          <div className={styles.customerForm}>
+            <input
+              className={styles.field}
+              placeholder="Full name"
+              value={customer.name}
+              onChange={(e) =>
+                setCustomer({ ...customer, name: e.target.value })
+              }
+              autoComplete="name"
+            />
+            <input
+              className={styles.field}
+              type="email"
+              placeholder="Email"
+              value={customer.email}
+              onChange={(e) =>
+                setCustomer({ ...customer, email: e.target.value })
+              }
+              autoComplete="email"
+            />
+            <input
+              className={styles.field}
+              type="tel"
+              placeholder="Phone"
+              value={customer.phone}
+              onChange={(e) =>
+                setCustomer({ ...customer, phone: e.target.value })
+              }
+              autoComplete="tel"
+            />
+          </div>
+
+          <div
+            className={styles.buyNowWrapper}
+            onClick={loading ? undefined : handlePay}
+            role="button"
+            style={{
+              opacity: loading ? 0.6 : 1,
+              pointerEvents: loading ? 'none' : 'auto',
+            }}
+          >
+            <div className={styles.desktop1Inner} />
+            <div className={styles.buyNow}>
+              {loading ? 'PROCESSING...' : 'PAY NOW'}
+            </div>
+          </div>
+
+          {message && (
+            <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
+              {message}
+            </p>
+          )}
+        </div>
+
+        {/* RIGHT: product photo (desktop only) */}
+        <div className={styles.checkoutRight}>
+          <img
+            className={styles.checkoutHero}
+            src="/assets/merch/product-2.webp"
+            alt={PRODUCT_NAME}
+          />
+          <div className={styles.checkoutRightMeta}>
+            <div className={styles.checkoutRightTitle}>{PRODUCT_NAME}</div>
+            <div className={styles.checkoutRightSize}>Size {selectedSize}</div>
+            <div className={styles.checkoutRightPrice}>{PRODUCT_PRICE}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ========== PRODUCT PAGE ========== */
   return (
     <>
       <div className={styles.desktop1}>
@@ -320,68 +521,6 @@ const Desktop1 = () => {
           </div>
           <div className={styles.desktop1Item} />
 
-          <div className={styles.orderSummary}>
-            <div className={styles.summaryProduct}>
-              <img
-                src="/assets/merch/product-2.webp"
-                alt=""
-                className={styles.summaryThumb}
-              />
-              <div className={styles.summaryInfo}>
-                <div className={styles.summaryTitle}>{PRODUCT_NAME}</div>
-                <div className={styles.summaryMeta}>
-                  {selectedSize ? `Size ${selectedSize}` : 'Select a size'}
-                </div>
-              </div>
-              <div className={styles.summaryPrice}>{PRODUCT_PRICE}</div>
-            </div>
-
-            <div className={styles.summaryRow}>
-              <span>Subtotal</span>
-              <span>{PRODUCT_PRICE}</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>Shipping</span>
-              <span>FREE</span>
-            </div>
-            <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
-              <span>Total</span>
-              <span>INR 759.00</span>
-            </div>
-          </div>
-
-          <div className={styles.customerForm}>
-            <input
-              className={styles.field}
-              placeholder="Full name"
-              value={customer.name}
-              onChange={(e) =>
-                setCustomer({ ...customer, name: e.target.value })
-              }
-              autoComplete="name"
-            />
-            <input
-              className={styles.field}
-              type="email"
-              placeholder="Email"
-              value={customer.email}
-              onChange={(e) =>
-                setCustomer({ ...customer, email: e.target.value })
-              }
-              autoComplete="email"
-            />
-            <input
-              className={styles.field}
-              type="tel"
-              placeholder="Phone"
-              value={customer.phone}
-              onChange={(e) =>
-                setCustomer({ ...customer, phone: e.target.value })
-              }
-              autoComplete="tel"
-            />
-          </div>
-
           <div className={styles.lineParent}>
             <div className={styles.accordionRow}>
               <button
@@ -396,16 +535,10 @@ const Desktop1 = () => {
                 type="button"
                 className={styles.accordionToggle}
                 onClick={() => toggleSection('description')}
-                aria-label={
-                  openSection === 'description'
-                    ? 'Collapse description'
-                    : 'Expand description'
-                }
               >
                 {openSection === 'description' ? '−' : '+'}
               </button>
             </div>
-
             <div
               className={`${styles.accordionPanel} ${
                 openSection === 'description' ? styles.accordionOpen : ''
@@ -436,14 +569,10 @@ const Desktop1 = () => {
                 type="button"
                 className={styles.accordionToggle}
                 onClick={() => toggleSection('care')}
-                aria-label={
-                  openSection === 'care' ? 'Collapse care' : 'Expand care'
-                }
               >
                 {openSection === 'care' ? '−' : '+'}
               </button>
             </div>
-
             <div
               className={`${styles.accordionPanel} ${
                 openSection === 'care' ? styles.accordionOpen : ''
@@ -460,17 +589,11 @@ const Desktop1 = () => {
 
           <div
             className={styles.buyNowWrapper}
-            onClick={loading ? undefined : handleBuyNow}
+            onClick={goToCheckout}
             role="button"
-            style={{
-              opacity: loading ? 0.6 : 1,
-              pointerEvents: loading ? 'none' : 'auto',
-            }}
           >
             <div className={styles.desktop1Inner} />
-            <div className={styles.buyNow}>
-              {loading ? 'PROCESSING...' : 'BUY NOW'}
-            </div>
+            <div className={styles.buyNow}>BUY NOW</div>
           </div>
 
           <div className={`${styles.frameChild} ${styles.lineAfterBuy}`} />
@@ -500,14 +623,12 @@ const Desktop1 = () => {
             >
               ×
             </button>
-
             <h2 className={styles.sizeGuideTitle}>
               SIZE CHART [ OVERSIZED FIT ]
             </h2>
             <p className={styles.sizeGuideSubtitle}>
               (All measurements in inches)
             </p>
-
             <div className={styles.sizeTableWrap}>
               <table className={styles.sizeTable}>
                 <thead>
@@ -552,11 +673,10 @@ const Desktop1 = () => {
                 </tbody>
               </table>
             </div>
-
             <img
               className={styles.sizeBodyImg}
               src="/assets/merch/size-guide-body.png"
-              alt="Measurement guide: Shoulder, Chest, Waist, Hip"
+              alt="Measurement guide"
             />
           </aside>
         </div>
