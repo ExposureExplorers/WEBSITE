@@ -458,7 +458,7 @@ const Desktop1 = () => {
             <div className={styles.imageCol}>
               <img
                 className={styles.image1Icon}
-                src="/assets/merch/product-2.webp"
+                src="/assets/merch/product-3.webp"
                 alt="Product front"
               />
               <img
@@ -470,7 +470,7 @@ const Desktop1 = () => {
             <div className={styles.imageCol}>
               <img
                 className={styles.image3Icon}
-                src="/assets/merch/product-3.webp"
+                src="/assets/merch/product-2.webp"
                 alt="Product lifestyle"
               />
               <img
