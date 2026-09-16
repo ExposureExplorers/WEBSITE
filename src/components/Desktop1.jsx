@@ -311,34 +311,7 @@ const Desktop1 = () => {
 
               <div className={styles.frameChild} />
 
-              <div className={styles.accordionRow}>
-                <button
-                  type="button"
-                  className={styles.description}
-                  onClick={() => toggleSection('care')}
-                  aria-expanded={openSection === 'care'}
-                >
-                  <span className={styles.accordionLabel}>CARE</span>
-                </button>
-                <button
-                  type="button"
-                  className={styles.accordionToggle}
-                  onClick={() => toggleSection('care')}
-                >
-                  {openSection === 'care' ? '−' : '+'}
-                </button>
-              </div>
-              <div
-                className={`${styles.accordionPanel} ${
-                  openSection === 'care' ? styles.accordionOpen : ''
-                }`}
-              >
-                <div className={styles.accordionInner}>
-                  Machine wash cold with similar colors. Do not bleach. Tumble
-                  dry low or hang dry. Iron on low heat if needed. Wash inside
-                  out.
-                </div>
-              </div>
+           
             </div>
           </div>
 
