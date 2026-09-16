@@ -307,12 +307,16 @@
   padding: 8px 0 12px;
 }
 
+/* BUY NOW skin + Razorpay hit area under it */
 .buyNowWrapper {
   position: relative;
   width: 100%;
   height: 55px;
   cursor: inherit;
+  overflow: hidden;
   transition: transform 0.15s ease;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .buyNowWrapper:active {
@@ -323,6 +327,8 @@
   position: absolute;
   inset: 0;
   background-color: #000;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .buyNow {
@@ -338,21 +344,49 @@
   color: #fff;
   pointer-events: none;
   letter-spacing: 0.02em;
+  z-index: 2;
 }
 
-/* Mobile Razorpay payment button */
-.mobilePayWrap {
+/* Invisible Razorpay layer — fills the skin */
+.razorpayHitArea {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 0;
   width: 100%;
-  margin-bottom: 20px;
+  height: 100%;
+  opacity: 0;
+  overflow: hidden;
 }
 
-.razorpayForm {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+.razorpayHitArea :global(button),
+.razorpayHitArea button,
+.razorpayHitArea :global(div),
+.razorpayHitArea div,
+.razorpayHitArea :global(iframe),
+.razorpayHitArea iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  opacity: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: inherit !important;
 }
 
-/* ===== SIZE GUIDE SLIDE-IN ===== */
+.lineBeforeBuy {
+  display: block;
+}
+
+.lineAfterBuy {
+  display: none;
+}
+
+/* Size guide slide-in */
 .sizeGuideOverlay {
   position: fixed;
   inset: 0;
@@ -386,8 +420,8 @@
 
 .sizeGuideClose {
   position: absolute;
-  top: 8px;
-  right: 0px;
+  top: 16px;
+  right: 8px;
   width: 36px;
   height: 36px;
   border: none;
@@ -453,7 +487,7 @@
   object-fit: contain;
 }
 
-/* ===== SUCCESS / RECEIPT ===== */
+/* Success / receipt */
 .successPage {
   min-height: 100vh;
   width: 100%;
@@ -559,7 +593,7 @@
   text-decoration: underline;
 }
 
-/* ===== MOBILE ===== */
+/* Mobile */
 @media (max-width: 768px) {
   .desktop1 {
     flex-direction: column;
@@ -596,13 +630,12 @@
     display: contents;
   }
 
-  /* Mobile order: 1st, 3rd, 2nd, 4th */
   .image1Icon {
-    order: 2;
+    order: 1;
   }
 
   .image3Icon {
-    order: 1;
+    order: 2;
   }
 
   .image4Icon2 {
@@ -637,22 +670,6 @@
     flex-direction: column;
   }
 
-  /* Buy / pay first, then Description & Care */
-  .mobilePayWrap {
-    order: 5;
-    width: 100%;
-    margin-bottom: 20px;
-  }
-
-  .buyNowWrapper {
-    order: 5;
-    height: 52px;
-  }
-
-  .lineParent {
-    order: 6;
-  }
-
   .exposureExplorersOversizedContainer {
     font-size: 22px;
   }
@@ -675,71 +692,33 @@
 
   .sizeGuide {
     font-size: 16px;
-  }
-
-  .buyNow {
-    font-size: 22px;
+    margin-bottom: 16px;
   }
 
   .groupParent {
     gap: 12px;
   }
 
-  .sizeGuidePanel {
-    width: 100%;
-    padding: 24px 20px 40px;
-  }
-
-  .successCard {
-    padding: 28px 20px;
-  }
-
-  .successTitle {
-    font-size: 22px;
-  }
-}
-/* Desktop: line after CARE (above Buy Now) */
-.lineBeforeBuy {
-  display: block;
-}
-
-/* Desktop: hide line under Buy Now */
-.lineAfterBuy {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  /* Mobile: no line above Buy Now */
-  .lineBeforeBuy {
+  .desktop1Item,
+  .lineBeforeBuy,
+  .lineAfterBuy {
     display: none;
   }
 
-  /* Mobile: line below Buy Now */
-  .lineAfterBuy {
-    display: block;
-    margin-top: 16px;
-    width: 100%;
-  }
-}
-
-.buyNowWrapper {
+  .buyNowWrapper {
   position: relative;
   width: 100%;
   height: 55px;
   cursor: inherit;
-  overflow: hidden;
+  margin-left: auto;
+  margin-right: auto;
   transition: transform 0.15s ease;
-}
-
-.buyNowWrapper:active {
-  transform: scale(0.98);
 }
 
 .desktop1Inner {
   position: absolute;
   inset: 0;
   background-color: #000;
-  pointer-events: none;
 }
 
 .buyNow {
@@ -750,65 +729,35 @@
   align-items: center;
   justify-content: center;
   font-size: 36px;
-  line-height: 1;
   font-weight: 600;
   color: #fff;
   pointer-events: none;
   letter-spacing: 0.02em;
-  z-index: 1;
-}
-
-/* Invisible Razorpay layer — fills your button */
-.razorpayHitArea {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  margin: 0;
-  padding: 0;
-  opacity: 0;
-  overflow: hidden;
-}
-
-.razorpayHitArea :global(button),
-.razorpayHitArea button,
-.razorpayHitArea :global(div),
-.razorpayHitArea div {
-  width: 100% !important;
-  height: 100% !important;
-  min-width: 100% !important;
-  min-height: 100% !important;
-  max-width: none !important;
-  opacity: 0 !important;
-  border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  cursor: inherit !important;
-}
-
-.lineBeforeBuy {
-  display: block;
-}
-
-.lineAfterBuy {
-  display: none;
 }
 
 @media (max-width: 768px) {
-  .lineBeforeBuy {
-    display: none;
-  }
-
-  .lineAfterBuy {
-    display: block;
-    margin-top: 16px;
-    width: 100%;
-  }
-
   .buyNowWrapper {
+    order: 5;
+    width: 100%;
     height: 52px;
+    margin: 8px auto 0;
   }
 
   .buyNow {
     font-size: 22px;
   }
+
+  .lineParent {
+    order: 6;
+    margin-top: 16px;
+    border-top: 0.2px solid #000;
+    border-bottom: 0.2px solid #000; /* line below CARE on phone */
+  }
+
+  .desktop1Item,
+  .lineBeforeBuy,
+  .lineAfterBuy {
+    display: none;
+  }
+}
 }
