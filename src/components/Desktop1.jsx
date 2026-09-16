@@ -269,7 +269,7 @@ const Desktop1 = () => {
             className={styles.checkoutBack}
             onClick={() => setShowCheckout(false)}
           >
-            ← Back
+           Back
           </button>
 
           <h1 className={styles.checkoutHeading}>Checkout</h1>
