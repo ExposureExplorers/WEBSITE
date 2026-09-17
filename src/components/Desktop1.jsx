@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
 import styles from './Desktop1.module.css';
 import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
@@ -9,12 +10,12 @@ const MERCH_AMOUNT_PAISE = 100;
 
 const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
 
-• 240 GSM Terry Cotton
-• Dual Softener Finish
-• Screen / PUFF Printed Branding
-• Pre-Shrunk & Durable
-• Relaxed Fit
-• Signature Front & Back Graphics`;
+- 240 GSM Terry Cotton
+- Dual Softener Finish
+- Screen / PUFF Printed Branding
+- Pre-Shrunk & Durable
+- Relaxed Fit
+- Signature Front & Back Graphics`;
 
 const Desktop1 = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -117,35 +118,6 @@ const Desktop1 = () => {
     });
   };
 
-  const buildReceiptText = (order) => {
-    const date = new Date(order.paidAt).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-
-    return [
-      'EXPOSURE EXPLORERS',
-      '--------------------------------',
-      'PAYMENT RECEIPT',
-      '--------------------------------',
-      'Status:          PAID',
-      `Date:            ${date}`,
-      '',
-      `Product:         ${order.product}`,
-      `Size:            ${order.size}`,
-      `Amount:          ${order.amount}`,
-      '',
-      `Name:            ${order.customerName || '—'}`,
-      `Email:           ${order.customerEmail || '—'}`,
-      `Phone:           ${order.customerPhone || '—'}`,
-      '',
-      `Payment ID:      ${order.paymentId}`,
-      `Order ID:        ${order.orderRef}`,
-      '--------------------------------',
-      'Thank you for your order!',
-    ].join('\n');
-  };
-
   const downloadReceipt = (e) => {
     if (e) {
       e.preventDefault();
@@ -153,28 +125,61 @@ const Desktop1 = () => {
     }
     if (!orderSuccess) return;
 
-    const text = buildReceiptText(orderSuccess);
-    const filename = `EE_Receipt_${orderSuccess.paymentId || Date.now()}.txt`;
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const date = new Date(orderSuccess.paidAt).toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
 
-    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-      window.navigator.msSaveOrOpenBlob(blob, filename);
-      return;
-    }
+    let y = 60;
+    const left = 50;
+    const lineGap = 22;
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.rel = 'noopener';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text('EXPOSURE EXPLORERS', left, y);
+    y += 14;
+    doc.setDrawColor(0);
+    doc.line(left, y, 545, y);
+    y += lineGap;
 
-    setTimeout(() => {
-      if (a.parentNode) document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 1000);
+    doc.setFontSize(13);
+    doc.text('PAYMENT RECEIPT', left, y);
+    y += lineGap;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+
+    const row = (label, value) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, left, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(String(value ?? '—'), left + 130, y);
+      y += lineGap;
+    };
+
+    row('Status:', 'PAID');
+    row('Date:', date);
+    y += 6;
+    row('Product:', orderSuccess.product);
+    row('Size:', orderSuccess.size);
+    row('Amount:', orderSuccess.amount);
+    y += 6;
+    row('Name:', orderSuccess.customerName);
+    row('Email:', orderSuccess.customerEmail);
+    row('Phone:', orderSuccess.customerPhone);
+    y += 6;
+    row('Payment ID:', orderSuccess.paymentId);
+    row('Order ID:', orderSuccess.orderRef);
+
+    y += 10;
+    doc.line(left, y, 545, y);
+    y += lineGap;
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you for your order!', left, y);
+
+    const filename = `EE_Receipt_${orderSuccess.paymentId || Date.now()}.pdf`;
+    doc.save(filename);
   };
 
   /* ========== SUCCESS ========== */
