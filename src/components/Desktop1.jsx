@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { jsPDF } from 'jspdf';
 import styles from './Desktop1.module.css';
 import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
@@ -8,14 +7,13 @@ const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
 const PRODUCT_PRICE = '₹ 1';
 const MERCH_AMOUNT_PAISE = 100;
 
-const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
-
-- 240 GSM Terry Cotton
-- Dual Softener Finish
-- Screen / PUFF Printed Branding
-- Pre-Shrunk & Durable
-- Relaxed Fit
-- Signature Front & Back Graphics`;
+const DESCRIPTION_TEXT = `Details
+220 GSM Premium Cotton
+Oversized / Relaxed Fit
+High-Quality DTF Print
+Soft yet heavyweight feel
+Structured silhouette
+Premium everyday streetwear essential`;
 
 const Desktop1 = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,26 +24,11 @@ const Desktop1 = () => {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [customer, setCustomer] = useState({
     name: '',
     email: '',
     phone: '',
   });
-
-  useEffect(() => {
-    const mql = window.matchMedia('(max-width: 768px)');
-    const update = () => setIsMobile(mql.matches);
-    update();
-    if (mql.addEventListener) {
-      mql.addEventListener('change', update);
-      return () => mql.removeEventListener('change', update);
-    } else {
-      // Safari fallback
-      mql.addListener(update);
-      return () => mql.removeListener(update);
-    }
-  }, []);
 
   useEffect(() => {
     const paymentFlag = searchParams.get('payment');
@@ -133,83 +116,7 @@ const Desktop1 = () => {
     });
   };
 
-  const downloadReceipt = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    if (!orderSuccess) return;
-
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const date = new Date(orderSuccess.paidAt).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-
-    let y = 60;
-    const left = 50;
-    const lineGap = 22;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text('EXPOSURE EXPLORERS', left, y);
-    y += 14;
-    doc.setDrawColor(0);
-    doc.line(left, y, 545, y);
-    y += lineGap;
-
-    doc.setFontSize(13);
-    doc.text('PAYMENT RECEIPT', left, y);
-    y += lineGap;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-
-    const row = (label, value) => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(label, left, y);
-      doc.setFont('helvetica', 'normal');
-      doc.text(String(value ?? '—'), left + 130, y);
-      y += lineGap;
-    };
-
-    row('Status:', 'PAID');
-    row('Date:', date);
-    y += 6;
-    row('Product:', orderSuccess.product);
-    row('Size:', orderSuccess.size);
-    // jsPDF's built-in helvetica font has no ₹ glyph, so it prints as
-    // garbled characters. Swap it for "Rs." in the PDF only.
-    const pdfAmount = String(orderSuccess.amount ?? '').replace(/₹/g, 'Rs.').trim();
-    row('Amount:', pdfAmount);
-    y += 6;
-    row('Name:', orderSuccess.customerName);
-    row('Email:', orderSuccess.customerEmail);
-    row('Phone:', orderSuccess.customerPhone);
-    y += 6;
-    row('Payment ID:', orderSuccess.paymentId);
-    row('Order ID:', orderSuccess.orderRef);
-
-    y += 10;
-    doc.line(left, y, 545, y);
-    y += lineGap;
-    doc.setFont('helvetica', 'italic');
-    doc.text('Thank you for your order!', left, y);
-
-    const filename = `EE_Receipt_${orderSuccess.paymentId || Date.now()}.pdf`;
-
-    // No Blob / URL.createObjectURL — use a base64 data URI directly.
-    const dataUri = doc.output('datauristring');
-    const link = document.createElement('a');
-    link.href = dataUri;
-    link.download = filename;
-    link.rel = 'noopener';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  /* ========== SUCCESS ========== */
+  /* ========== CONFIRMATION (PC + mobile) ========== */
   if (orderSuccess) {
     return (
       <div className={styles.successPage}>
@@ -267,24 +174,16 @@ const Desktop1 = () => {
           </div>
 
           <div className={styles.successActions}>
-            {!isMobile && (
-              <button
-                type="button"
-                className={styles.primaryBtn}
-                onClick={downloadReceipt}
-              >
-                Download receipt
-              </button>
-            )}
             <button
               type="button"
-              className={isMobile ? styles.primaryBtn : styles.ghostBtn}
+              className={styles.primaryBtn}
               onClick={() => {
                 setOrderSuccess(null);
                 setShowCheckout(false);
+                setMessage('');
               }}
             >
-              Back to product
+              Go back
             </button>
           </div>
         </div>
@@ -292,27 +191,23 @@ const Desktop1 = () => {
     );
   }
 
-  /* ========== CHECKOUT PAGE ========== */
+  /* ========== CHECKOUT ========== */
   if (showCheckout) {
     return (
       <div className={styles.checkoutPage}>
-        {/* LEFT: details form */}
         <div className={styles.checkoutLeft}>
           <button
             type="button"
             className={styles.checkoutBack}
             onClick={() => setShowCheckout(false)}
           >
-           Back
+            Back
           </button>
 
           <h1 className={styles.checkoutHeading}>Checkout</h1>
 
-
-          {/* Order summary (text only — no photo on mobile) */}
           <div className={styles.orderSummary}>
             <div className={styles.summaryProduct}>
-              {/* Desktop only thumb */}
               <img
                 src="/assets/merch/product-2.webp"
                 alt=""
@@ -335,7 +230,7 @@ const Desktop1 = () => {
             </div>
             <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
               <span>Total</span>
-              <span>INR 759.00</span>
+              <span>INR {(MERCH_AMOUNT_PAISE / 100).toFixed(2)}</span>
             </div>
           </div>
 
@@ -393,7 +288,6 @@ const Desktop1 = () => {
           )}
         </div>
 
-        {/* RIGHT: product photo (desktop only) */}
         <div className={styles.checkoutRight}>
           <img
             className={styles.checkoutHero}
@@ -410,7 +304,7 @@ const Desktop1 = () => {
     );
   }
 
-  /* ========== PRODUCT PAGE ========== */
+  /* ========== PRODUCT — order matches screenshot ========== */
   return (
     <>
       <div className={styles.desktop1}>
@@ -486,9 +380,30 @@ const Desktop1 = () => {
           >
             SIZE GUIDE
           </div>
+
+          {/* Line under SIZE GUIDE */}
           <div className={styles.desktop1Item} />
 
-          <div className={styles.lineParent}>
+          {/* BUY NOW — above Description / Care */}
+          <div
+            className={styles.buyNowWrapper}
+            onClick={goToCheckout}
+            role="button"
+          >
+            <div className={styles.desktop1Inner} />
+            <div className={styles.buyNow}>BUY NOW</div>
+          </div>
+
+          {message && (
+            <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
+              {message}
+            </p>
+          )}
+
+          {/* Line under BUY NOW */}
+          <div className={styles.frameChild} style={{ marginTop: 24 }} />
+
+          <div className={styles.lineParent} style={{ marginTop: 0 }}>
             <div className={styles.accordionRow}>
               <button
                 type="button"
@@ -551,25 +466,9 @@ const Desktop1 = () => {
               </div>
             </div>
 
-            <div className={`${styles.frameChild} ${styles.lineAfterBuy}`} />
+            {/* Line below CARE */}
+            <div className={styles.frameChild} />
           </div>
-
-          <div
-            className={styles.buyNowWrapper}
-            onClick={goToCheckout}
-            role="button"
-          >
-            <div className={styles.desktop1Inner} />
-            <div className={styles.buyNow}>BUY NOW</div>
-          </div>
-
-          <div className={`${styles.frameChild} ${styles.lineAfterBuy}`} />
-
-          {message && (
-            <p style={{ marginTop: 12, fontSize: 14, color: '#c00' }}>
-              {message}
-            </p>
-          )}
         </div>
       </div>
 
@@ -630,12 +529,6 @@ const Desktop1 = () => {
                     <td>48</td>
                     <td>29</td>
                     <td>24.5</td>
-                  </tr>
-                  <tr>
-                    <td>XXL</td>
-                    <td>50</td>
-                    <td>29.5&quot;</td>
-                    <td>25.5</td>
                   </tr>
                 </tbody>
               </table>
