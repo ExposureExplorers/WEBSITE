@@ -4,8 +4,8 @@ import styles from './Desktop1.module.css';
 import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
-const PRODUCT_PRICE = '₹ 1';
-const MERCH_AMOUNT_PAISE = 100;
+const PRODUCT_PRICE = '₹ 749';
+const MERCH_AMOUNT_PAISE = 74900;
 
 const DESCRIPTION_TEXT = `Details
 220 GSM Premium Cotton
@@ -116,7 +116,7 @@ const Desktop1 = () => {
     });
   };
 
-  /* ========== CONFIRMATION (PC + mobile) ========== */
+  /* ========== CONFIRMATION ========== */
   if (orderSuccess) {
     return (
       <div className={styles.successPage}>
@@ -304,7 +304,7 @@ const Desktop1 = () => {
     );
   }
 
-  /* ========== PRODUCT — order matches screenshot ========== */
+  /* ========== PRODUCT (phone + desktop same order) ========== */
   return (
     <>
       <div className={styles.desktop1}>
@@ -380,11 +380,9 @@ const Desktop1 = () => {
           >
             SIZE GUIDE
           </div>
-
-          {/* Line under SIZE GUIDE */}
           <div className={styles.desktop1Item} />
 
-          {/* BUY NOW — above Description / Care */}
+          {/* BUY NOW — above Description / Care (phone + desktop) */}
           <div
             className={styles.buyNowWrapper}
             onClick={goToCheckout}
@@ -400,10 +398,9 @@ const Desktop1 = () => {
             </p>
           )}
 
-          {/* Line under BUY NOW */}
-          <div className={styles.frameChild} style={{ marginTop: 24 }} />
+          <div className={styles.lineParent} style={{ marginTop: 24 }}>
+            <div className={styles.frameChild} />
 
-          <div className={styles.lineParent} style={{ marginTop: 0 }}>
             <div className={styles.accordionRow}>
               <button
                 type="button"
@@ -466,7 +463,6 @@ const Desktop1 = () => {
               </div>
             </div>
 
-            {/* Line below CARE */}
             <div className={styles.frameChild} />
           </div>
         </div>
