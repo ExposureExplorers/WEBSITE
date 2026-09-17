@@ -26,11 +26,26 @@ const Desktop1 = () => {
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [customer, setCustomer] = useState({
     name: '',
     email: '',
     phone: '',
   });
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobile(mql.matches);
+    update();
+    if (mql.addEventListener) {
+      mql.addEventListener('change', update);
+      return () => mql.removeEventListener('change', update);
+    } else {
+      // Safari fallback
+      mql.addListener(update);
+      return () => mql.removeListener(update);
+    }
+  }, []);
 
   useEffect(() => {
     const paymentFlag = searchParams.get('payment');
@@ -249,16 +264,18 @@ const Desktop1 = () => {
           </div>
 
           <div className={styles.successActions}>
+            {!isMobile && (
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={downloadReceipt}
+              >
+                Download receipt
+              </button>
+            )}
             <button
               type="button"
-              className={styles.primaryBtn}
-              onClick={downloadReceipt}
-            >
-              Download receipt
-            </button>
-            <button
-              type="button"
-              className={styles.ghostBtn}
+              className={isMobile ? styles.primaryBtn : styles.ghostBtn}
               onClick={() => {
                 setOrderSuccess(null);
                 setShowCheckout(false);
@@ -531,7 +548,7 @@ const Desktop1 = () => {
               </div>
             </div>
 
-            <div className={`${styles.frameChild} ${styles.lineBeforeBuy}`} />
+            <div className={`${styles.frameChild} ${styles.lineAfterBuy}`} />
           </div>
 
           <div
