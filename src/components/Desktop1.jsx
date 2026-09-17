@@ -178,7 +178,10 @@ const Desktop1 = () => {
     y += 6;
     row('Product:', orderSuccess.product);
     row('Size:', orderSuccess.size);
-    row('Amount:', orderSuccess.amount);
+    // jsPDF's built-in helvetica font has no ₹ glyph, so it prints as
+    // garbled characters. Swap it for "Rs." in the PDF only.
+    const pdfAmount = String(orderSuccess.amount ?? '').replace(/₹/g, 'Rs.').trim();
+    row('Amount:', pdfAmount);
     y += 6;
     row('Name:', orderSuccess.customerName);
     row('Email:', orderSuccess.customerEmail);
