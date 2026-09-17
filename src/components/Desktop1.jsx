@@ -426,7 +426,7 @@ const Desktop1 = () => {
           <div className={styles.desktop1Child} />
 
           <div className={styles.groupParent}>
-            {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
+            {['S', 'M', 'L', 'XL'].map((size) => (
               <div
                 key={size}
                 className={`${styles.rectangleParent} ${
