@@ -354,7 +354,7 @@ const Desktop1 = () => {
           <div className={styles.desktop1Child} />
 
           <div className={styles.groupParent}>
-            {['S', 'M', 'L', 'XL'].map((size) => (
+            {['XS','S', 'M', 'L', 'XL'].map((size) => (
               <div
                 key={size}
                 className={`${styles.rectangleParent} ${
@@ -486,10 +486,11 @@ const Desktop1 = () => {
               ×
             </button>
             <h2 className={styles.sizeGuideTitle}>
-              SIZE CHART [ OVERSIZED FIT ]
+              SIZE CHART [ OVERSIZED FIT]
             </h2>
             <p className={styles.sizeGuideSubtitle}>
-              (All measurements in inches)
+              (All measurements in inches. Please note
+              XS will be available on demand)
             </p>
             <div className={styles.sizeTableWrap}>
               <table className={styles.sizeTable}>
