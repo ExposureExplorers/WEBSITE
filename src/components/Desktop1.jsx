@@ -179,7 +179,16 @@ const Desktop1 = () => {
     doc.text('Thank you for your order!', left, y);
 
     const filename = `EE_Receipt_${orderSuccess.paymentId || Date.now()}.pdf`;
-    doc.save(filename);
+
+    // No Blob / URL.createObjectURL — use a base64 data URI directly.
+    const dataUri = doc.output('datauristring');
+    const link = document.createElement('a');
+    link.href = dataUri;
+    link.download = filename;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   /* ========== SUCCESS ========== */
