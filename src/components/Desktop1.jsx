@@ -4,8 +4,8 @@ import styles from './Desktop1.module.css';
 import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
-const PRODUCT_PRICE = '₹ 759';
-const MERCH_AMOUNT_PAISE = 75900;
+const PRODUCT_PRICE = '₹ 1';
+const MERCH_AMOUNT_PAISE = 100;
 
 const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
 
