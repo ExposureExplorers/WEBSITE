@@ -64,59 +64,72 @@ const Desktop1 = () => {
     window.scrollTo(0, 0);
   };
 
-  const handlePay = async () => {
-    if (!selectedSize) {
-      setMessage('Please select a size first.');
-      return;
-    }
-    if (
-      !customer.name.trim() ||
-      !customer.email.trim() ||
-      !customer.phone.trim()
-    ) {
-      setMessage('Please enter name, email and phone.');
-      return;
+ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// amount in RUPEES for the edge function (1 while testing, 759 live)
+const AMOUNT_RUPEES = MERCH_AMOUNT_PAISE / 100;
+
+const handlePay = async () => {
+  if (!selectedSize) {
+    setMessage('Please select a size first.');
+    return;
+  }
+  if (
+    !customer.name.trim() ||
+    !customer.email.trim() ||
+    !customer.phone.trim()
+  ) {
+    setMessage('Please enter name, email and phone.');
+    return;
+  }
+
+  setLoading(true);
+  setMessage('');
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/create-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+        apikey: SUPABASE_ANON,
+      },
+      body: JSON.stringify({
+        name: customer.name.trim(),
+        email: customer.email.trim(),
+        phone: customer.phone.trim(),
+        size: selectedSize,
+        amount: AMOUNT_RUPEES,
+        product: PRODUCT_NAME,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.payment_url) {
+      throw new Error(data.error || 'Could not start payment');
     }
 
-    setLoading(true);
-    setMessage('');
-
-    await openRazorpayCheckout({
-      amountPaise: MERCH_AMOUNT_PAISE,
-      name: customer.name.trim(),
-      email: customer.email.trim(),
-      contact: customer.phone.trim(),
-      description: `Oversized T-Shirt — Size ${selectedSize}`,
-      receipt: `merch_${selectedSize}_${Date.now()}`,
-      notes: {
+    // optional: stash for success UI
+    sessionStorage.setItem(
+      'ee_merch_pending',
+      JSON.stringify({
         size: selectedSize,
         product: PRODUCT_NAME,
-      },
-      onSuccess: (response) => {
-        setOrderSuccess({
-          product: PRODUCT_NAME,
-          size: selectedSize,
-          amount: PRODUCT_PRICE,
-          paymentId: response.razorpay_payment_id || '—',
-          orderRef: response.razorpay_order_id || '—',
-          paidAt: new Date().toISOString(),
-          customerName: customer.name.trim(),
-          customerEmail: customer.email.trim(),
-          customerPhone: customer.phone.trim(),
-        });
-        setLoading(false);
-      },
-      onError: (msg) => {
-        setMessage(msg || 'Payment failed.');
-        setLoading(false);
-      },
-      onDismiss: () => {
-        setMessage('Payment cancelled.');
-        setLoading(false);
-      },
-    });
-  };
+        amount: PRODUCT_PRICE,
+        name: customer.name.trim(),
+        email: customer.email.trim(),
+        phone: customer.phone.trim(),
+        reference_id: data.reference_id,
+      })
+    );
 
+    window.location.assign(data.payment_url);
+  } catch (err) {
+    setMessage(err.message || 'Payment failed.');
+    setLoading(false);
+  }
+};
   const buildReceiptText = (order) => {
     const date = new Date(order.paidAt).toLocaleString('en-IN', {
       dateStyle: 'medium',
