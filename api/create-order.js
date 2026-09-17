@@ -19,15 +19,11 @@ export default async function handler(req, res) {
     }
 
     const order = await razorpay.orders.create({
-  amount: amountPaise,
-  currency,
-  receipt: receipt || `merch_${Date.now()}`,
-  notes: {
-    ...(notes || {}),
-    size: notes?.size || '',
-    product: notes?.product || '',
-  },
-});
+      amount: amountPaise,
+      currency,
+      receipt: receipt || `merch_${Date.now()}`,
+      notes: notes || {},
+    });
 
     return res.status(200).json({
       order_id: order.id,
