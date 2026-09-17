@@ -6,6 +6,7 @@ import { openRazorpayCheckout } from '../lib/razorpayCheckout';
 const PRODUCT_NAME = 'Exposure Explorers Oversized T-Shirt';
 const PRODUCT_PRICE = '₹ 1';
 const MERCH_AMOUNT_PAISE = 100;
+const DISPLAY_TOTAL = `INR ${(MERCH_AMOUNT_PAISE / 100).toFixed(2)}`;
 
 const DESCRIPTION_TEXT = `A heavyweight 240 GSM Terry Cotton tee featuring minimal front branding and a bold graphic back. Finished with a soft, breathable feel and a relaxed silhouette made for everyday wear.
 
@@ -86,11 +87,15 @@ const Desktop1 = () => {
       name: customer.name.trim(),
       email: customer.email.trim(),
       contact: customer.phone.trim(),
-      description: `Oversized T-Shirt — Size ${selectedSize}`,
+      // description often shows on Razorpay receipts/emails
+      description: `Exposure Explorers Oversized T-Shirt | Size: ${selectedSize}`,
       receipt: `merch_${selectedSize}_${Date.now()}`,
       notes: {
         size: selectedSize,
         product: PRODUCT_NAME,
+        customer_name: customer.name.trim(),
+        customer_email: customer.email.trim(),
+        customer_phone: customer.phone.trim(),
       },
       onSuccess: (response) => {
         setOrderSuccess({
@@ -146,7 +151,7 @@ const Desktop1 = () => {
     ].join('\n');
   };
 
-  const downloadReceipt = (e) => {
+  const downloadReceipt = async (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -154,27 +159,55 @@ const Desktop1 = () => {
     if (!orderSuccess) return;
 
     const text = buildReceiptText(orderSuccess);
-    const filename = `EE_Receipt_${orderSuccess.paymentId || Date.now()}.txt`;
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const filename = `EE_Receipt_${String(
+      orderSuccess.paymentId || Date.now()
+    ).replace(/[^\w.-]/g, '_')}.txt`;
+
+    if (typeof window.showSaveFilePicker === 'function') {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [
+            {
+              description: 'Text file',
+              accept: { 'text/plain': ['.txt'] },
+            },
+          ],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(text);
+        await writable.close();
+        return;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+    }
 
     if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       window.navigator.msSaveOrOpenBlob(blob, filename);
       return;
     }
 
-    const url = URL.createObjectURL(blob);
+    // data: URL — avoids blob: + React Router /blob:... bug
+    const dataUrl =
+      'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
+    a.href = dataUrl;
+    a.setAttribute('download', filename);
     a.rel = 'noopener';
-    a.style.display = 'none';
+    a.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
     document.body.appendChild(a);
-    a.click();
-
+    a.dispatchEvent(
+      new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      })
+    );
     setTimeout(() => {
-      if (a.parentNode) document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 1000);
+      if (a.parentNode) a.parentNode.removeChild(a);
+    }, 500);
   };
 
   /* ========== SUCCESS ========== */
@@ -258,27 +291,90 @@ const Desktop1 = () => {
     );
   }
 
-  /* ========== CHECKOUT PAGE ========== */
+  /* ========== CHECKOUT ========== */
   if (showCheckout) {
     return (
       <div className={styles.checkoutPage}>
-        {/* LEFT: details form */}
         <div className={styles.checkoutLeft}>
           <button
             type="button"
             className={styles.checkoutBack}
             onClick={() => setShowCheckout(false)}
           >
-           Back
+            Back
           </button>
 
           <h1 className={styles.checkoutHeading}>Checkout</h1>
 
+          <div className={styles.checkoutAccordionMobile}>
+            <div className={styles.lineParent}>
+              <div className={styles.accordionRow}>
+                <button
+                  type="button"
+                  className={styles.description}
+                  onClick={() => toggleSection('description')}
+                  aria-expanded={openSection === 'description'}
+                >
+                  <span className={styles.accordionLabel}>DESCRIPTION</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.accordionToggle}
+                  onClick={() => toggleSection('description')}
+                >
+                  {openSection === 'description' ? '−' : '+'}
+                </button>
+              </div>
+              <div
+                className={`${styles.accordionPanel} ${
+                  openSection === 'description' ? styles.accordionOpen : ''
+                }`}
+              >
+                <div className={styles.accordionInner}>
+                  {DESCRIPTION_TEXT.split('\n').map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      <br />
+                    </span>
+                  ))}
+                </div>
+              </div>
 
-          {/* Order summary (text only — no photo on mobile) */}
+              <div className={styles.frameChild} />
+
+              <div className={styles.accordionRow}>
+                <button
+                  type="button"
+                  className={styles.description}
+                  onClick={() => toggleSection('care')}
+                  aria-expanded={openSection === 'care'}
+                >
+                  <span className={styles.accordionLabel}>CARE</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.accordionToggle}
+                  onClick={() => toggleSection('care')}
+                >
+                  {openSection === 'care' ? '−' : '+'}
+                </button>
+              </div>
+              <div
+                className={`${styles.accordionPanel} ${
+                  openSection === 'care' ? styles.accordionOpen : ''
+                }`}
+              >
+                <div className={styles.accordionInner}>
+                  Machine wash cold with similar colors. Do not bleach. Tumble
+                  dry low or hang dry. Iron on low heat if needed. Wash inside
+                  out.
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className={styles.orderSummary}>
             <div className={styles.summaryProduct}>
-              {/* Desktop only thumb */}
               <img
                 src="/assets/merch/product-2.webp"
                 alt=""
@@ -301,7 +397,7 @@ const Desktop1 = () => {
             </div>
             <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
               <span>Total</span>
-              <span>INR 759.00</span>
+              <span>{DISPLAY_TOTAL}</span>
             </div>
           </div>
 
@@ -359,7 +455,6 @@ const Desktop1 = () => {
           )}
         </div>
 
-        {/* RIGHT: product photo (desktop only) */}
         <div className={styles.checkoutRight}>
           <img
             className={styles.checkoutHero}
@@ -376,7 +471,7 @@ const Desktop1 = () => {
     );
   }
 
-  /* ========== PRODUCT PAGE ========== */
+  /* ========== PRODUCT ========== */
   return (
     <>
       <div className={styles.desktop1}>
