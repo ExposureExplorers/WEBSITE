@@ -510,6 +510,12 @@ const Desktop1 = () => {
                     <td>21.5</td>
                   </tr>
                   <tr>
+                    <td>XS</td>
+                    <td>39/40</td>
+                    <td>27&quot;</td>
+                    <td>20.5</td>
+                  </tr>
+                  <tr>
                     <td>M</td>
                     <td>44</td>
                     <td>28</td>
