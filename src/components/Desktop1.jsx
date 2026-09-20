@@ -504,16 +504,16 @@ const Desktop1 = () => {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>S</td>
-                    <td>42</td>
-                    <td>27.5&quot;</td>
-                    <td>21.5</td>
-                  </tr>
-                  <tr>
                     <td>XS</td>
                     <td>39/40</td>
                     <td>27&quot;</td>
                     <td>20.5</td>
+                  </tr>
+                  <tr>
+                    <td>S</td>
+                    <td>42</td>
+                    <td>27.5&quot;</td>
+                    <td>21.5</td>
                   </tr>
                   <tr>
                     <td>M</td>
